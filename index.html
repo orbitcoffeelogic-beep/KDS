@@ -251,8 +251,9 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
-          <button onclick="simulateIncomingWebOrder()" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-pink-50 hover:bg-pink-100 text-captain-pink border border-pink-200 font-heading font-bold text-xs uppercase tracking-wider transition active:scale-95">
-            <span class="animate-bounce">⚡</span> Simulasi Pesanan Web Masuk
+          <button onclick="openTransactionHistoryModal()" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-captain-navy hover:bg-slate-800 text-captain-cyan border border-slate-700 font-heading font-bold text-xs uppercase tracking-wider transition shadow-2xs active:scale-95">
+            <span>📜</span> Riwayat Transaksi
+            <span id="badgeHistoryCount" class="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-mono font-extrabold bg-cyan-500/20 text-captain-cyan border border-cyan-400/30">0</span>
           </button>
           <button onclick="syncWithGoogleSheets(true)" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-heading font-bold text-xs uppercase tracking-wider transition">
             <span>🔄</span> Refresh Data
@@ -642,6 +643,123 @@
               </tr>
             </thead>
             <tbody id="tbodyPiutangArsip" class="divide-y divide-slate-200 text-xs"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       5B. MODAL: RIWAYAT TRANSAKSI KASIR & OTORISASI VOID
+  ====================================================================== -->
+  <div id="modalHistory" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-6xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
+
+      <!-- Header Modal Riwayat Transaksi -->
+      <div class="px-5 py-4 bg-captain-navy text-white flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <span class="w-10 h-10 rounded-2xl bg-cyan-500/20 border border-cyan-400/40 text-captain-cyan flex items-center justify-center text-xl">📜</span>
+          <div>
+            <h3 class="font-heading font-extrabold text-lg sm:text-xl uppercase tracking-wider">
+              Riwayat Transaksi Kasir
+            </h3>
+          </div>
+        </div>
+        <button onclick="closeModal('modalHistory')" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center font-mono text-lg transition">✕</button>
+      </div>
+
+      <!-- Panel Filter & Pencarian Transaksi -->
+      <div class="px-5 py-3.5 bg-slate-50 border-b border-slate-200 space-y-3">
+        <!-- Baris 1: Rentang Tanggal & Urutan Waktu -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 items-end">
+          <div>
+            <label class="block font-heading font-extrabold text-[11px] uppercase tracking-wider text-slate-500 mb-1">
+              📅 Tanggal Mulai (Dari)
+            </label>
+            <input id="historyDateStart" onchange="renderTransactionHistory()" type="date" class="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-mono text-captain-navy focus:outline-none focus:border-captain-navy" />
+          </div>
+
+          <div>
+            <label class="block font-heading font-extrabold text-[11px] uppercase tracking-wider text-slate-500 mb-1">
+              📅 Tanggal Akhir (Sampai)
+            </label>
+            <input id="historyDateEnd" onchange="renderTransactionHistory()" type="date" class="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-mono text-captain-navy focus:outline-none focus:border-captain-navy" />
+          </div>
+
+          <div>
+            <label class="block font-heading font-extrabold text-[11px] uppercase tracking-wider text-slate-500 mb-1">
+              ⏱️ Urutan Tanggal (Sort)
+            </label>
+            <select id="historySortOrder" onchange="renderTransactionHistory()" class="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-mono font-bold text-captain-navy focus:outline-none focus:border-captain-navy">
+              <option value="DESC">Terbaru ke Terlama (Desc)</option>
+              <option value="ASC">Terlama ke Terbaru (Asc)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-heading font-extrabold text-[11px] uppercase tracking-wider text-slate-500 mb-1">
+              🏷️ Filter Status Transaksi
+            </label>
+            <select id="historyStatusFilter" onchange="renderTransactionHistory()" class="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-mono font-bold text-captain-navy focus:outline-none focus:border-captain-navy">
+              <option value="ALL">Semua Status</option>
+              <option value="SELESAI">SELESAI / LUNAS</option>
+              <option value="SIAP SAJI">SIAP SAJI</option>
+              <option value="DIPROSES">DIPROSES</option>
+              <option value="MENUNGGU KONFIRMASI">MENUNGGU KONFIRMASI</option>
+              <option value="OPEN TAB">OPEN TAB</option>
+              <option value="KASBON">KASBON</option>
+              <option value="BATAL">BATAL / VOID</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Baris 2: Filter Nama Pelanggan, Cari ID/Meja, Reset & Ringkasan -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2.5 items-center pt-1">
+          <div class="lg:col-span-4">
+            <label class="block font-heading font-extrabold text-[11px] uppercase tracking-wider text-slate-500 mb-1">
+              👤 Filter Nama Pelanggan
+            </label>
+            <input id="historyCustomerFilter" list="historyCustomerDatalist" oninput="renderTransactionHistory()" type="text" placeholder="Ketik atau pilih nama pelanggan..." class="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-sans text-captain-navy focus:outline-none focus:border-captain-navy" />
+            <datalist id="historyCustomerDatalist"></datalist>
+          </div>
+
+          <div class="lg:col-span-4">
+            <label class="block font-heading font-extrabold text-[11px] uppercase tracking-wider text-slate-500 mb-1">
+              🔍 Cari ID Order / Meja / Menu
+            </label>
+            <input id="historyQueryFilter" oninput="renderTransactionHistory()" type="text" placeholder="Contoh: #CAP-01, Meja 04, Kopi Susu..." class="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-sans text-captain-navy focus:outline-none focus:border-captain-navy" />
+          </div>
+
+          <div class="lg:col-span-4 flex items-end justify-between sm:justify-end gap-2 pt-3 lg:pt-4">
+            <button type="button" onclick="resetTransactionHistoryFilters()" class="px-3 py-1.5 rounded-xl bg-slate-200/80 hover:bg-slate-300/80 text-slate-700 font-heading font-bold text-xs uppercase tracking-wider transition">
+              🔄 Reset Filter
+            </button>
+            <div class="px-3 py-1.5 rounded-xl bg-white border border-slate-200 font-mono text-xs">
+              Ditemukan: <strong id="historyFoundCount" class="text-captain-navy font-extrabold">0</strong> Tiket • <strong id="historyFoundSum" class="text-captain-pink font-extrabold">Rp 0</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabel Daftar Riwayat Transaksi -->
+      <div class="p-5 overflow-y-auto flex-1">
+        <div class="overflow-x-auto border border-slate-200 rounded-2xl">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-100 text-[11px] font-mono font-bold uppercase text-slate-600 border-b border-slate-200">
+                <th class="py-3 px-3.5">ID Order</th>
+                <th class="py-3 px-3.5">Tanggal & Waktu</th>
+                <th class="py-3 px-3.5">Meja / Lokasi</th>
+                <th class="py-3 px-3.5">Nama Pelanggan</th>
+                <th class="py-3 px-3.5">Rincian Pesanan</th>
+                <th class="py-3 px-3.5">Total Tagihan</th>
+                <th class="py-3 px-3.5">Metode Bayar</th>
+                <th class="py-3 px-3.5">Status</th>
+                <th class="py-3 px-3.5 text-right">Aksi Void</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyHistoryOrders" class="divide-y divide-slate-200 text-xs"></tbody>
           </table>
         </div>
       </div>
@@ -1166,27 +1284,38 @@
       });
     }
 
-    // FUNGSI VOID TIKET DENGAN PIN SPREADSHEET
+    // FUNGSI SOFT-VOID TIKET (HILANG DARI KDS, TETAP TERSIMPAN DI SPREADSHEET SEBAGAI 'BATAL')
     async function promptVoidOrder(orderId) {
-      const inputPin = prompt(`[OTORISASI SUPERVISOR]\nMasukkan PIN untuk Void/Hapus Tiket #${orderId}:`);
-      if (inputPin === null || inputPin.trim() === "") return;
+      const order = appState.orders.find(o => o.orderId === orderId);
+      if (!order) return;
 
-      const confirmVoid = confirm(`Apakah Anda yakin ingin menghapus tiket #${orderId} secara permanen?`);
+      if (order.status === 'BATAL') {
+        showToast(`Tiket #${orderId} sudah berstatus BATAL / VOID.`, "pink");
+        return;
+      }
+
+      const confirmVoid = confirm(
+        `[VOID TRANSAKSI]\nBatalkan tiket #${orderId} (${order.customerName} - ${formatRupiah(order.totalPrice)})?\n\nTiket akan dihilangkan dari layar KDS & perhitungan omzet, namun tetap tersimpan sebagai 'BATAL' di database Google Sheets.`
+      );
       if (!confirmVoid) return;
 
-      showToast("Memverifikasi PIN ke database...", "navy");
+      // 1. Ubah status lokal menjadi BATAL agar langsung hilang dari KDS & Kanban Kasir
+      order.status = 'BATAL';
+      order.paymentStatus = 'BATAL';
 
-      sendActionToSheets({
-        action: "DELETE_ORDER",
-        orderId: orderId,
-        pin: inputPin.trim()
-      });
-
-      appState.orders = appState.orders.filter(o => o.orderId !== orderId);
+      // Jika transaksi terkait ada di daftar piutang aktif lokal, keluarkan dari tagihan aktif
       appState.piutangAktif = appState.piutangAktif.filter(p => p.order_id !== orderId);
+
       saveState();
       renderAll();
-      showToast(`Permintaan VOID #${orderId} dikirim ke sistem.`, "emerald");
+      showToast(`Tiket #${orderId} di-void dari KDS & ditandai BATAL di database.`, "emerald");
+
+      // 2. Kirim pembaruan status 'BATAL' ke Google Sheets (meminta PIN staf di sendActionToSheets)
+      sendActionToSheets({
+        action: "UPDATE_STATUS",
+        orderId: orderId,
+        newStatus: "BATAL"
+      });
     }
 
     function updateProductionStatus(orderId, newStatus) {
@@ -1703,6 +1832,199 @@
     }
 
     /*************************************************************************
+     * L2. MODAL RIWAYAT TRANSAKSI, FILTER TANGGAL, PELANGGAN & VOID PER BARIS
+     *************************************************************************/
+    function openTransactionHistoryModal() {
+      populateCustomerDatalist();
+      renderTransactionHistory();
+      openModal('modalHistory');
+    }
+
+    function populateCustomerDatalist() {
+      const datalist = document.getElementById('historyCustomerDatalist');
+      if (!datalist) return;
+      const namesFromOrders = appState.orders.map(o => String(o.customerName || '').trim()).filter(Boolean);
+      const namesFromPiutang = appState.piutangAktif.map(p => String(p.nama_pelanggan || '').trim()).filter(Boolean);
+      const uniqueNames = [...new Set([...namesFromOrders, ...namesFromPiutang])].sort((a, b) => a.localeCompare(b, 'id'));
+      datalist.innerHTML = uniqueNames.map(name => `<option value="${name.replace(/"/g, '&quot;')}"></option>`).join('');
+    }
+
+    function parseOrderTimestampToDateObj(tsStr, fallbackMs) {
+      if (tsStr && typeof tsStr === 'string') {
+        const s = tsStr.trim();
+        // Format DD/MM/YYYY HH:mm atau DD/MM/YYYY
+        const dmyMatch = s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})(?:\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/);
+        if (dmyMatch) {
+          const day = parseInt(dmyMatch[1], 10);
+          const month = parseInt(dmyMatch[2], 10) - 1;
+          const year = parseInt(dmyMatch[3], 10);
+          const hour = dmyMatch[4] ? parseInt(dmyMatch[4], 10) : 0;
+          const min = dmyMatch[5] ? parseInt(dmyMatch[5], 10) : 0;
+          const sec = dmyMatch[6] ? parseInt(dmyMatch[6], 10) : 0;
+          return new Date(year, month, day, hour, min, sec);
+        }
+        // Format ISO YYYY-MM-DD
+        const parsed = new Date(s);
+        if (!isNaN(parsed.getTime())) return parsed;
+      }
+      return fallbackMs ? new Date(fallbackMs) : new Date(0);
+    }
+
+    function resetTransactionHistoryFilters() {
+      const startEl = document.getElementById('historyDateStart');
+      const endEl = document.getElementById('historyDateEnd');
+      const sortEl = document.getElementById('historySortOrder');
+      const statusEl = document.getElementById('historyStatusFilter');
+      const custEl = document.getElementById('historyCustomerFilter');
+      const queryEl = document.getElementById('historyQueryFilter');
+
+      if (startEl) startEl.value = '';
+      if (endEl) endEl.value = '';
+      if (sortEl) sortEl.value = 'DESC';
+      if (statusEl) statusEl.value = 'ALL';
+      if (custEl) custEl.value = '';
+      if (queryEl) queryEl.value = '';
+
+      renderTransactionHistory();
+    }
+
+    function renderTransactionHistory() {
+      const tbody = document.getElementById('tbodyHistoryOrders');
+      if (!tbody) return;
+
+      populateCustomerDatalist();
+
+      const startVal = document.getElementById('historyDateStart')?.value || '';
+      const endVal = document.getElementById('historyDateEnd')?.value || '';
+      const sortOrder = document.getElementById('historySortOrder')?.value || 'DESC';
+      const statusFilter = document.getElementById('historyStatusFilter')?.value || 'ALL';
+      const customerQuery = (document.getElementById('historyCustomerFilter')?.value || '').trim().toLowerCase();
+      const generalQuery = (document.getElementById('historyQueryFilter')?.value || '').trim().toLowerCase();
+
+      const startDateBound = startVal ? new Date(startVal + 'T00:00:00') : null;
+      const endDateBound = endVal ? new Date(endVal + 'T23:59:59.999') : null;
+
+      const enriched = appState.orders.map((o, idx) => {
+        const dateObj = parseOrderTimestampToDateObj(o.timestamp, o.createdAtMs);
+        return { order: o, dateTimeMs: dateObj.getTime(), idx };
+      });
+
+      const filtered = enriched.filter(({ order, dateTimeMs }) => {
+        // 1. Filter Rentang Tanggal Mulai & Akhir
+        if (startDateBound && dateTimeMs < startDateBound.getTime()) return false;
+        if (endDateBound && dateTimeMs > endDateBound.getTime()) return false;
+
+        // 2. Filter Status Transaksi / Tagihan
+        if (statusFilter !== 'ALL') {
+          if (statusFilter === 'OPEN TAB') {
+            if (order.paymentStatus !== 'OPEN TAB') return false;
+          } else if (statusFilter === 'KASBON') {
+            if (order.paymentStatus !== 'KASBON' && order.paymentMethod !== 'Kasbon') return false;
+          } else if (statusFilter === 'SELESAI') {
+            if (order.status !== 'SELESAI' && order.paymentStatus !== 'LUNAS') return false;
+          } else {
+            if (order.status !== statusFilter) return false;
+          }
+        }
+
+        // 3. Filter Nama Pelanggan
+        if (customerQuery) {
+          const cName = String(order.customerName || '').toLowerCase();
+          if (!cName.includes(customerQuery)) return false;
+        }
+
+        // 4. Filter Umum (ID Order, Lokasi Meja, Rincian Menu, Metode Bayar)
+        if (generalQuery) {
+          const itemsStr = (order.items || []).map(it => `${it.qty}x ${it.name} ${it.note || ''}`).join(' ').toLowerCase();
+          const matchGeneral =
+            String(order.orderId || '').toLowerCase().includes(generalQuery) ||
+            String(order.location || '').toLowerCase().includes(generalQuery) ||
+            String(order.paymentMethod || '').toLowerCase().includes(generalQuery) ||
+            itemsStr.includes(generalQuery);
+          if (!matchGeneral) return false;
+        }
+
+        return true;
+      });
+
+      // 5. Urutkan Berdasarkan Tanggal (Sort Date ASC / DESC)
+      filtered.sort((a, b) => {
+        if (a.dateTimeMs !== b.dateTimeMs) {
+          return sortOrder === 'ASC' ? (a.dateTimeMs - b.dateTimeMs) : (b.dateTimeMs - a.dateTimeMs);
+        }
+        return sortOrder === 'ASC' ? (b.idx - a.idx) : (a.idx - b.idx);
+      });
+
+      const validTotalSum = filtered.reduce((acc, { order }) => {
+        return order.status === 'BATAL' ? acc : acc + (Number(order.totalPrice) || 0);
+      }, 0);
+
+      const countEl = document.getElementById('historyFoundCount');
+      const sumEl = document.getElementById('historyFoundSum');
+      if (countEl) countEl.textContent = filtered.length;
+      if (sumEl) sumEl.textContent = formatRupiah(validTotalSum);
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" class="py-10 text-center text-slate-400 font-mono text-xs">
+              Tidak ada riwayat transaksi yang sesuai dengan filter pencarian.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(({ order }) => {
+        const isVoided = order.status === 'BATAL';
+        const itemsText = (order.items || []).map(it => `${it.qty}x ${it.name}${it.note ? ` (${it.note})` : ''}`).join(', ');
+        const safeOrderId = String(order.orderId || '').replace(/'/g, "\'");
+
+        let statusBadgeClass = 'bg-amber-100 text-amber-800 border border-amber-200';
+        if (isVoided) {
+          statusBadgeClass = 'bg-rose-100 text-rose-700 border border-rose-200';
+        } else if (order.status === 'SELESAI') {
+          statusBadgeClass = 'bg-emerald-100 text-emerald-800 border border-emerald-200';
+        } else if (order.status === 'SIAP SAJI' || order.status === 'DIPROSES') {
+          statusBadgeClass = 'bg-cyan-100 text-cyan-900 border border-cyan-200';
+        }
+
+        return `
+          <tr class="hover:bg-slate-50 transition ${isVoided ? 'bg-rose-50/30 text-slate-400' : ''}">
+            <td class="py-3 px-3.5 font-mono font-bold text-captain-navy whitespace-nowrap">#${order.orderId}</td>
+            <td class="py-3 px-3.5 font-mono text-slate-500 whitespace-nowrap">${order.timestamp || '-'}</td>
+            <td class="py-3 px-3.5 font-bold text-captain-navy whitespace-nowrap">${order.location || '-'}</td>
+            <td class="py-3 px-3.5 font-bold text-slate-800">${order.customerName || '-'}</td>
+            <td class="py-3 px-3.5 text-slate-600 max-w-xs truncate" title="${itemsText.replace(/"/g, '&quot;')}">${itemsText || '-'}</td>
+            <td class="py-3 px-3.5 font-mono font-extrabold whitespace-nowrap ${isVoided ? 'line-through text-slate-400' : 'text-captain-pink'}">
+              ${formatRupiah(order.totalPrice)}
+            </td>
+            <td class="py-3 px-3.5 font-mono whitespace-nowrap">
+              <span class="font-bold text-captain-navy">${order.paymentMethod || '-'}</span>
+              <span class="block text-[10px] ${order.paymentStatus === 'LUNAS' ? 'text-emerald-600' : 'text-amber-600'}">${order.paymentStatus || ''}</span>
+            </td>
+            <td class="py-3 px-3.5 whitespace-nowrap">
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-extrabold ${statusBadgeClass}">
+                ${order.status}
+              </span>
+            </td>
+            <td class="py-3 px-3.5 text-right whitespace-nowrap">
+              ${isVoided ? `
+                <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-400 border border-slate-200 font-mono font-bold text-[10px] uppercase">
+                  🚫 VOIDED
+                </span>
+              ` : `
+                <button onclick="promptVoidOrder('${safeOrderId}')" title="Void Tiket (Hilang dari KDS & Tercatat BATAL di Sheets)" class="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-200 hover:border-rose-600 font-heading font-extrabold text-xs uppercase tracking-wider transition shadow-2xs">
+                  🗑️ Void
+                </button>
+              `}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    /*************************************************************************
      * M. RENDER ENGINE (KASIR, BARISTA KDS, DAN BUKU PIUTANG)
      *************************************************************************/
     function renderAll() {
@@ -1710,6 +2032,7 @@
       renderCashierKanban();
       renderBaristaKds();
       renderPiutangTables();
+      renderTransactionHistory();
     }
 
     function updateHeaderMetrics() {
@@ -1745,6 +2068,8 @@
       document.getElementById('badgePendingKasir').textContent = pendingCount;
       document.getElementById('badgeActiveKds').textContent = activeKdsCount;
       document.getElementById('badgeKasbonCount').textContent = appState.piutangAktif.length;
+      const badgeHist = document.getElementById('badgeHistoryCount');
+      if (badgeHist) badgeHist.textContent = appState.orders.length;
     }
 
     function renderCashierKanban() {
