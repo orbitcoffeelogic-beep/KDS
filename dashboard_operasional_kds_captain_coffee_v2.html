@@ -1,0 +1,2225 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>CAPTAIN.CO.CH — Dashboard Operasional Kasir & KDS Barista</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: League Spartan (Headings), JetBrains Mono (Numbers/IDs/Timers), Plus Jakarta Sans (Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;0,700;0,800;1,400&family=League+Spartan:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind Custom Configuration -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            heading: ['"League Spartan"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            captain: {
+              navy: '#0f172a',
+              slate: '#1e293b',
+              cyan: '#00e5ff',
+              cyanDark: '#0891b2',
+              pink: '#ff007f',
+              pinkSoft: '#fdf2f8',
+              amber: '#f59e0b',
+              emerald: '#10b981'
+            }
+          },
+          boxShadow: {
+            'stitch': '0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.04)',
+            'stitch-hover': '0 12px 28px -4px rgba(15, 23, 42, 0.12), 0 4px 10px -2px rgba(15, 23, 42, 0.06)',
+            'cyan-glow': '0 0 20px rgba(0, 229, 255, 0.35)',
+            'pink-glow': '0 0 20px rgba(255, 0, 127, 0.3)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Background Stitch Grid Pattern */
+    .bg-stitch-grid {
+      background-color: #f8fafc;
+      background-image: radial-gradient(#cbd5e1 1.15px, transparent 1.15px);
+      background-size: 22px 22px;
+    }
+
+    /* Komponen Kartu Stitch */
+    .stitch-card {
+      background: #ffffff;
+      border: 1px solid rgba(226, 232, 240, 0.95);
+      border-radius: 1.25rem;
+      box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .stitch-card:hover {
+      box-shadow: 0 10px 25px -4px rgba(15, 23, 42, 0.09);
+    }
+
+    /* Animasi denyut halus untuk pesanan baru masuk */
+    @keyframes pulseBorderPink {
+      0%, 100% { border-color: rgba(255, 0, 127, 0.85); box-shadow: 0 0 0 0 rgba(255, 0, 127, 0.25); }
+      50% { border-color: rgba(255, 0, 127, 0.35); box-shadow: 0 0 0 6px rgba(255, 0, 127, 0); }
+    }
+    .card-new-alert {
+      border-width: 2px;
+      animation: pulseBorderPink 2.2s infinite;
+    }
+
+    /* Animasi denyut cyan untuk pesanan Siap Saji */
+    @keyframes pulseBorderCyan {
+      0%, 100% { border-color: #06b6d4; box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.25); }
+      50% { border-color: #67e8f9; box-shadow: 0 0 0 6px rgba(6, 182, 212, 0); }
+    }
+    .card-ready-alert {
+      border-width: 2px;
+      animation: pulseBorderCyan 2.2s infinite;
+    }
+
+    /* Custom Scrollbar rapi */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 8px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 8px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* Hilangkan spinner pada input number */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+  </style>
+</head>
+
+<body class="bg-stitch-grid text-captain-navy font-sans min-h-screen flex flex-col selection:bg-captain-cyan selection:text-captain-navy">
+
+  <!-- =====================================================================
+       1. TOP STICKY NAVIGATION BAR (HEADER GLOBAL)
+  ====================================================================== -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-xs">
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 py-3">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+
+        <!-- Brand Identity & Live Sync Status -->
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl bg-captain-navy text-white flex items-center justify-center shadow-sm relative overflow-hidden group">
+            <svg class="w-6 h-6 text-captain-cyan transition-transform duration-300 group-hover:scale-110" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 8h1a4 4 0 1 1 0 8h-1"/>
+              <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/>
+              <line x1="6" y1="2" x2="6" y2="4"/>
+              <line x1="10" y1="2" x2="10" y2="4"/>
+              <line x1="14" y1="2" x2="14" y2="4"/>
+            </svg>
+            <span class="absolute bottom-1 right-1 w-2 h-2 rounded-full bg-captain-pink"></span>
+          </div>
+
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="font-heading font-black text-xl sm:text-2xl tracking-wider uppercase text-captain-navy leading-none">
+                CAPTAIN<span class="text-captain-pink">.</span>CO<span class="text-cyan-500">.</span>CH
+              </h1>
+              <span id="syncBadge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                <span id="syncStatusText">LIVE SYNC</span>
+              </span>
+            </div>
+            <div class="flex items-center gap-2 mt-0.5">
+              <p class="text-xs font-medium text-slate-500">POS Kasir, Open Tab & Barista KDS</p>
+              <span class="text-slate-300">•</span>
+              <span id="liveClock" class="font-mono text-xs font-bold text-slate-600">--:--:-- WIB</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Center: Shift Financial & Table Occupancy Widgets (Tampil di Mode Kasir) -->
+        <div id="cashierHeaderMetrics" class="hidden xl:flex items-center gap-2.5 bg-slate-50/90 p-1.5 rounded-2xl border border-slate-200/80">
+          <!-- Kas Tunai Riil -->
+          <div class="px-3 py-1.5 bg-white rounded-xl border border-slate-200/60 shadow-2xs">
+            <div class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Kas Tunai (Lunas)
+            </div>
+            <div id="metricCash" class="font-mono font-extrabold text-sm text-captain-navy mt-0.5">Rp 0</div>
+          </div>
+
+          <!-- Mutasi QRIS -->
+          <div class="px-3 py-1.5 bg-white rounded-xl border border-slate-200/60 shadow-2xs">
+            <div class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <span class="w-2 h-2 rounded-full bg-cyan-500"></span> Mutasi QRIS (Lunas)
+            </div>
+            <div id="metricQris" class="font-mono font-extrabold text-sm text-captain-navy mt-0.5">Rp 0</div>
+          </div>
+
+          <!-- Tagihan Berjalan (Open Tab + Kasbon) -->
+          <div class="px-3 py-1.5 bg-white rounded-xl border border-slate-200/60 shadow-2xs cursor-pointer hover:border-captain-pink/50 transition" onclick="openModal('modalPiutang')">
+            <div class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <span class="w-2 h-2 rounded-full bg-captain-pink"></span> Open Tab & Piutang
+            </div>
+            <div id="metricUnpaid" class="font-mono font-extrabold text-sm text-captain-pink mt-0.5">Rp 0</div>
+          </div>
+
+          <!-- Keterisian Meja -->
+          <div class="px-3 py-1.5 bg-captain-navy text-white rounded-xl">
+            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-300">Meja Aktif</div>
+            <div id="metricTables" class="font-mono font-extrabold text-sm text-captain-cyan mt-0.5">0 / 11</div>
+          </div>
+        </div>
+
+        <!-- Right Controls: Role Switcher & Quick Buttons -->
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Role Switcher Toggle -->
+          <div class="inline-flex p-1 rounded-2xl bg-slate-100 border border-slate-200/90">
+            <button id="btnRoleKasir" onclick="switchRole('kasir')" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl font-heading font-bold text-sm uppercase tracking-wider transition-all bg-captain-navy text-white shadow-xs">
+              <span>🛎️</span> Mode Kasir
+              <span id="badgePendingKasir" class="ml-1 px-1.5 py-0.2 rounded-full text-[11px] font-mono bg-captain-pink text-white">0</span>
+            </button>
+            <button id="btnRoleBarista" onclick="switchRole('barista')" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl font-heading font-bold text-sm uppercase tracking-wider transition-all text-slate-600 hover:text-captain-navy">
+              <span>☕</span> Barista (KDS)
+              <span id="badgeActiveKds" class="ml-1 px-1.5 py-0.2 rounded-full text-[11px] font-mono bg-cyan-500 text-captain-navy font-extrabold">0</span>
+            </button>
+          </div>
+
+          <!-- Button: POS Manual Cepat -->
+          <button onclick="openPosModal()" class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl font-heading font-extrabold text-sm uppercase tracking-wider bg-captain-cyan hover:bg-cyan-300 text-captain-navy shadow-sm hover:shadow-cyan-glow transition active:scale-95">
+            <span class="text-base leading-none font-mono font-black">+</span> TAMBAH PESANAN
+          </button>
+
+          <!-- Button: Buku Piutang & Arsip Kasbon -->
+          <button onclick="openModal('modalPiutang')" class="relative inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-2xl font-heading font-bold text-sm uppercase tracking-wider bg-white hover:bg-slate-50 text-captain-navy border border-slate-200 shadow-2xs transition">
+            <span>📓</span> <span class="hidden sm:inline">Buku Piutang</span>
+            <span id="badgeKasbonCount" class="px-1.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-pink-100 text-captain-pink border border-pink-200">0</span>
+          </button>
+
+          <!-- Audio Toggle -->
+          <button id="btnAudioToggle" onclick="toggleAudio()" title="Suara Notifikasi Pesanan" class="p-2.5 rounded-2xl bg-white hover:bg-slate-50 text-captain-navy border border-slate-200 shadow-2xs transition">
+            <span id="audioIcon">🔔</span>
+          </button>
+
+          <!-- Settings / Google Sheets Sync Config -->
+          <button onclick="openModal('modalSettings')" title="Konfigurasi Integrasi Google Sheets" class="p-2.5 rounded-2xl bg-white hover:bg-slate-50 text-captain-navy border border-slate-200 shadow-2xs transition">
+            <span>⚙️</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- =====================================================================
+       2. MAIN WORKSPACE CONTAINER
+  ====================================================================== -->
+  <main class="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 py-5">
+
+    <!-- ===================================================================
+         VIEW A: MODE KASIR (GATEKEEPER, OPEN TAB, & PRODUCTION CONTROL)
+    ==================================================================== -->
+    <section id="viewKasir" class="space-y-5">
+
+      <!-- Sub-toolbar Kasir: Pencarian Cepat, Filter & Tombol Simulasi Pesanan Web -->
+      <div class="stitch-card p-3.5 flex flex-wrap items-center justify-between gap-3 bg-white/90">
+        <div class="flex flex-wrap items-center gap-2.5 flex-1 min-w-[260px]">
+          <div class="relative flex-1 max-w-md">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
+            <input id="searchOrderInput" oninput="renderAll()" type="text" placeholder="Cari No. Meja, Nama Pelanggan, atau #CAP-ID..." class="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:border-captain-navy focus:bg-white transition font-sans" />
+          </div>
+
+          <!-- Ringkasan Cepat Mobile/Tablet -->
+          <div class="flex xl:hidden items-center gap-2 text-xs font-mono">
+            <span class="px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold">Tunai: <span id="metricCashMobile">Rp 0</span></span>
+            <span class="px-2.5 py-1.5 rounded-lg bg-cyan-50 text-cyan-800 border border-cyan-200 font-bold">QRIS: <span id="metricQrisMobile">Rp 0</span></span>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="simulateIncomingWebOrder()" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-pink-50 hover:bg-pink-100 text-captain-pink border border-pink-200 font-heading font-bold text-xs uppercase tracking-wider transition active:scale-95">
+            <span class="animate-bounce">⚡</span> Simulasi Pesanan Web Masuk
+          </button>
+          <button onclick="syncWithGoogleSheets(true)" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-heading font-bold text-xs uppercase tracking-wider transition">
+            <span>🔄</span> Refresh Data
+          </button>
+        </div>
+      </div>
+
+      <!-- 3-Column Kanban Board Kasir -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
+
+        <!-- KOLOM 1: MENUNGGU KONFIRMASI (WEB ORDER GATEKEEPER) -->
+        <div class="bg-slate-100/80 border border-slate-200/90 rounded-3xl p-4 flex flex-col max-h-[calc(100vh-190px)]">
+          <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-200">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-captain-pink animate-pulse"></span>
+              <h2 class="font-heading font-extrabold text-base uppercase tracking-wider text-captain-navy">
+                1. Daftar Pesanan Baru
+              </h2>
+            </div>
+            <span id="countColPending" class="font-mono text-xs font-extrabold px-2.5 py-1 rounded-full bg-captain-pink text-white">0</span>
+          </div>
+          <p class="text-xs text-slate-500 mb-3">
+            Pesanan dari scan QR meja pelanggan. Validasi pembayaran atau aktifkan <strong>Open Tab / Kasbon</strong> untuk meneruskan ke layar Barista.
+          </p>
+
+          <!-- Daftar Kartu Menunggu Konfirmasi -->
+          <div id="listColPending" class="space-y-3.5 overflow-y-auto pr-1 flex-1"></div>
+        </div>
+
+        <!-- KOLOM 2: OPEN TAB / MEJA AKTIF (BAYAR DI AKHIR & REPEAT ORDER) -->
+        <div class="bg-slate-100/80 border border-slate-200/90 rounded-3xl p-4 flex flex-col max-h-[calc(100vh-190px)]">
+          <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-200">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+              <h2 class="font-heading font-extrabold text-base uppercase tracking-wider text-captain-navy">
+                2. Open Table / Belum Bayar
+              </h2>
+            </div>
+            <span id="countColOpenTab" class="font-mono text-xs font-extrabold px-2.5 py-1 rounded-full bg-amber-500 text-white">0 Meja</span>
+          </div>
+          <p class="text-xs text-slate-500 mb-3">
+            Akumulasi tagihan meja berjalan (*bayar di akhir*). Klik <strong>+ Tambah Menu</strong> untuk *repeat order* (Ronde 2, 3, dst) atau <strong>Selesaikan</strong> saat tamu pulang.
+          </p>
+
+          <!-- Daftar Kartu Meja Open Tab -->
+          <div id="listColOpenTab" class="space-y-3.5 overflow-y-auto pr-1 flex-1"></div>
+        </div>
+
+        <!-- KOLOM 3: SEDANG DIRACIK & SIAP SAJI (MONITOR BAR & RUNNER) -->
+        <div class="bg-slate-100/80 border border-slate-200/90 rounded-3xl p-4 flex flex-col max-h-[calc(100vh-190px)]">
+          <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-200">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-cyan-500"></span>
+              <h2 class="font-heading font-extrabold text-base uppercase tracking-wider text-captain-navy">
+                3. Sedang Diproses
+              </h2>
+            </div>
+            <span id="countColProcessing" class="font-mono text-xs font-extrabold px-2.5 py-1 rounded-full bg-captain-navy text-captain-cyan">0</span>
+          </div>
+          <p class="text-xs text-slate-500 mb-3">
+            Pantauan racikan aktif di bar. Tiket berlabel <strong>SIAP SAJI</strong> siap diantar runner ke meja pelanggan.
+          </p>
+
+          <!-- Daftar Kartu Diproses & Siap Saji -->
+          <div id="listColProcessing" class="space-y-3.5 overflow-y-auto pr-1 flex-1"></div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         VIEW B: MODE BARISTA (KITCHEN DISPLAY SYSTEM / KDS)
+    ==================================================================== -->
+    <section id="viewBarista" class="hidden space-y-5">
+
+      <!-- Top Control Bar Barista KDS -->
+      <div class="stitch-card p-4 bg-captain-navy text-white flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="px-3 py-1.5 rounded-xl bg-cyan-500/20 border border-cyan-400/30 text-captain-cyan font-mono font-extrabold text-xs uppercase">
+            ANTREAN_BARISTA KDS
+          </div>
+          <div>
+            <h2 class="font-heading font-extrabold text-lg sm:text-xl uppercase tracking-wider">
+              Layar Produksi & Racikan Barista
+            </h2>
+            <p class="text-xs text-slate-300">
+              Hanya menampilkan pesanan yang telah divalidasi kasir (<span class="font-mono text-captain-cyan">DIPROSES</span> & <span class="font-mono text-emerald-400">SIAP SAJI</span>). Ketuk baris menu untuk mencoret item yang sudah dibuat.
+            </p>
+          </div>
+        </div>
+
+        <!-- Filter & Opsi Mode Layar Pasif vs Interaktif -->
+        <div class="flex flex-wrap items-center gap-2.5">
+          <!-- Filter Status KDS -->
+          <div class="inline-flex bg-slate-800 p-1 rounded-xl border border-slate-700 text-xs font-heading font-bold uppercase tracking-wider">
+            <button id="kdsFilterAll" onclick="setKdsFilter('ALL')" class="px-3 py-1.5 rounded-lg bg-captain-cyan text-captain-navy transition">
+              Semua Aktif
+            </button>
+            <button id="kdsFilterProcess" onclick="setKdsFilter('DIPROSES')" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white transition">
+              Perlu Diracik
+            </button>
+            <button id="kdsFilterReady" onclick="setKdsFilter('SIAP SAJI')" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white transition">
+              Siap Diantar
+            </button>
+          </div>
+
+          <!-- Toggle Mode Pasif (View-Only) vs Mode Sentuh Interaktif -->
+          <button id="btnKdsModeToggle" onclick="toggleBaristaViewOnly()" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-mono font-bold text-captain-cyan transition">
+            <span id="kdsModeIcon">🔓</span>
+            <span id="kdsModeText">Mode Layar: Interaktif (Sentuh)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Grid Kartu Tiket KDS Barista -->
+      <div id="kdsGridContainer" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5"></div>
+
+    </section>
+
+  </main>
+
+  <!-- =====================================================================
+       3. MODAL: POS KASIR MANUAL CEPAT & REPEAT ORDER (+ TAMBAH MENU)
+  ====================================================================== -->
+  <div id="modalPos" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-6xl w-full max-h-[94vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden animate-fadeIn">
+
+      <!-- Modal Header -->
+      <div class="px-5 py-4 bg-captain-navy text-white flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="w-9 h-9 rounded-xl bg-captain-cyan text-captain-navy font-mono font-black flex items-center justify-center text-lg">+</span>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 id="posModalTitle" class="font-heading font-extrabold text-lg sm:text-xl uppercase tracking-wider">
+                Input Pesanan Kasir Manual (POS Cepat)
+              </h3>
+              <span id="posRepeatBadge" class="hidden px-2.5 py-0.5 rounded-full text-xs font-mono font-extrabold bg-captain-pink text-white">
+                + TAMBAHAN (RONDE 2)
+              </span>
+            </div>
+            <p class="text-xs text-slate-300">Pesanan kasir otomatis berstatus <span class="font-mono text-captain-cyan">DIPROSES</span> dan langsung tampil di KDS Barista.</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modalPos')" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center font-mono text-lg transition">✕</button>
+      </div>
+
+      <!-- Modal Body: 2 Columns (Katalog Menu di Kiri, Detail Meja & Keranjang di Kanan) -->
+      <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
+
+        <!-- Kiri: Katalog Menu Cepat (7 Kolom) -->
+        <div class="lg:col-span-7 p-4 sm:p-5 bg-slate-50/70 border-b lg:border-b-0 lg:border-r border-slate-200 flex flex-col overflow-hidden">
+          <!-- Kategori Filter Pills -->
+          <div id="posCategoryList" class="flex items-center gap-2 overflow-x-auto pb-3 mb-3 border-b border-slate-200"></div>
+
+          <!-- Grid Tombol Menu -->
+          <div id="posMenuGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3 overflow-y-auto pr-1 flex-1 max-h-[45vh] lg:max-h-[62vh]"></div>
+        </div>
+
+        <!-- Kanan: Pemilihan Meja, Pelanggan, Keranjang & Otorisasi Bayar (5 Kolom) -->
+        <div class="lg:col-span-5 p-4 sm:p-5 bg-white flex flex-col justify-between overflow-y-auto max-h-[80vh]">
+          <div class="space-y-4">
+
+            <!-- 1. Pilih Lokasi / Nomor Meja -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="font-heading font-extrabold text-xs uppercase tracking-wider text-slate-500">
+                  1. Pilih Posisi Meja / Layanan
+                </label>
+                <span class="text-[11px] text-amber-600 font-medium">● Titik Oranye = Meja Open Tab Aktif</span>
+              </div>
+              <div id="posTableSelector" class="grid grid-cols-5 sm:grid-cols-7 gap-1.5"></div>
+            </div>
+
+            <!-- 2. Nama Pelanggan & Quick Chips Pelanggan Loyal -->
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label class="font-heading font-extrabold text-xs uppercase tracking-wider text-slate-500">
+                  2. Nama Pelanggan
+                </label>
+                <div class="flex items-center gap-1">
+                  <span class="text-[10px] text-slate-400">Pelanggan Loyal:</span>
+                  <button type="button" onclick="setPosCustomer('haryo')" class="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-pink-50 hover:text-captain-pink text-[11px] font-mono font-bold transition">haryo</button>
+                  <button type="button" onclick="setPosCustomer('Bro Reza')" class="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-pink-50 hover:text-captain-pink text-[11px] font-mono font-bold transition">Bro Reza</button>
+                  <button type="button" onclick="setPosCustomer('Mas Danang')" class="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-pink-50 hover:text-captain-pink text-[11px] font-mono font-bold transition">Mas Danang</button>
+                </div>
+              </div>
+              <input id="posCustomerName" type="text" placeholder="Ketik nama pelanggan (misal: Kak Dimas)..." class="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-sm font-medium focus:outline-none focus:border-captain-navy focus:bg-white" />
+            </div>
+
+            <!-- 3. Daftar Item Terpilih (Keranjang POS) -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="font-heading font-extrabold text-xs uppercase tracking-wider text-slate-500">
+                  3. Rincian Menu & Catatan Racikan
+                </label>
+                <button onclick="clearPosCart()" class="text-[11px] font-bold text-rose-500 hover:underline">Reset Item</button>
+              </div>
+              <div id="posCartItems" class="space-y-2 max-h-48 overflow-y-auto pr-1 border border-slate-200/80 rounded-2xl p-2.5 bg-slate-50/50"></div>
+            </div>
+
+            <!-- 4. Otorisasi Metode Penyelesaian (Eksklusif Kasir) -->
+            <div>
+              <label class="block font-heading font-extrabold text-xs uppercase tracking-wider text-slate-500 mb-1.5">
+                4. Otorisasi Pembayaran / Status Tagihan (Khusus Kasir)
+              </label>
+              <div class="grid grid-cols-2 gap-2" id="posPaymentOptions">
+                <button type="button" onclick="selectPosPayment('Tunai')" data-pay="Tunai" class="pos-pay-btn p-2.5 rounded-xl border-2 border-captain-navy bg-captain-navy text-white text-left transition">
+                  <div class="font-heading font-extrabold text-xs uppercase">💵 Tunai Langsung</div>
+                  <div class="text-[10px] opacity-80">Bayar lunas sekarang</div>
+                </button>
+                <button type="button" onclick="selectPosPayment('QRIS')" data-pay="QRIS" class="pos-pay-btn p-2.5 rounded-xl border border-slate-200 bg-white text-captain-navy text-left hover:border-slate-300 transition">
+                  <div class="font-heading font-extrabold text-xs uppercase">📱 QRIS Langsung</div>
+                  <div class="text-[10px] text-slate-500">Scan QR lunas sekarang</div>
+                </button>
+                <button type="button" onclick="selectPosPayment('Open Tab')" data-pay="Open Tab" class="pos-pay-btn p-2.5 rounded-xl border border-slate-200 bg-white text-captain-navy text-left hover:border-slate-300 transition">
+                  <div class="font-heading font-extrabold text-xs uppercase text-amber-600">📋 Buka / Gabung Open Tab</div>
+                  <div class="text-[10px] text-slate-500">Bayar di akhir (Meja Aktif)</div>
+                </button>
+                <button type="button" onclick="selectPosPayment('Kasbon')" data-pay="Kasbon" class="pos-pay-btn p-2.5 rounded-xl border border-slate-200 bg-white text-captain-navy text-left hover:border-slate-300 transition">
+                  <div class="font-heading font-extrabold text-xs uppercase text-captain-pink">📓 Kasbon (+3 Hari)</div>
+                  <div class="text-[10px] text-slate-500">Masuk ke Buku_Piutang</div>
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Total & Tombol Submit ke Barista -->
+          <div class="pt-4 mt-4 border-t border-slate-200">
+            <div class="flex items-center justify-between mb-3">
+              <span class="font-heading font-bold text-sm uppercase text-slate-500">Total Tagihan Tiket</span>
+              <span id="posTotalDisplay" class="font-mono font-extrabold text-2xl text-captain-pink">Rp 0</span>
+            </div>
+            <button onclick="submitPosOrder()" class="w-full py-3.5 px-5 rounded-2xl bg-captain-cyan hover:bg-cyan-300 text-captain-navy font-heading font-black text-base uppercase tracking-wider shadow-md hover:shadow-cyan-glow transition flex items-center justify-center gap-2">
+              <span>🚀</span> Simpan & Kirim Tiket ke Barista
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       4. MODAL: CHECKOUT PELUNASAN MEJA OPEN TAB (CONSOLIDATED CHECKOUT)
+  ====================================================================== -->
+  <div id="modalCheckoutTab" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden">
+      <div class="px-5 py-4 bg-captain-navy text-white flex items-center justify-between">
+        <div>
+          <span id="checkoutTableBadge" class="px-2.5 py-0.5 rounded-full text-xs font-mono font-extrabold bg-amber-400 text-captain-navy">MEJA 04</span>
+          <h3 class="font-heading font-extrabold text-xl uppercase tracking-wider mt-1">
+            Pelunasan Tagihan Open Tab
+          </h3>
+        </div>
+        <button onclick="closeModal('modalCheckoutTab')" class="w-8 h-8 rounded-xl bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center font-mono">✕</button>
+      </div>
+
+      <div class="p-5 space-y-4">
+        <div class="flex items-center justify-between text-xs text-slate-500 border-b border-slate-100 pb-2">
+          <span>Pelanggan: <strong id="checkoutCustomerName" class="text-captain-navy font-bold">-</strong></span>
+          <span>Jumlah Ronde: <strong id="checkoutRoundCount" class="font-mono text-captain-navy">1 Ronde</strong></span>
+        </div>
+
+        <!-- Rincian Gabungan Semua Ronde -->
+        <div id="checkoutRoundsList" class="space-y-2.5 max-h-56 overflow-y-auto pr-1 bg-slate-50 p-3 rounded-2xl border border-slate-200/80"></div>
+
+        <!-- Total Tagihan Akumulasi -->
+        <div class="p-4 rounded-2xl bg-slate-900 text-white flex items-center justify-between">
+          <div>
+            <div class="text-[11px] font-mono uppercase text-slate-400">Total Akumulasi Tagihan</div>
+            <div class="text-xs text-slate-300">Seluruh tiket meja ini akan ditandai LUNAS</div>
+          </div>
+          <div id="checkoutGrandTotal" class="font-mono font-black text-2xl text-captain-cyan">Rp 0</div>
+        </div>
+
+        <!-- Kalkulator Kembalian Tunai Cepat -->
+        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-heading font-bold uppercase text-slate-600">Kalkulator Uang Tunai Diterima</label>
+            <div class="flex gap-1">
+              <button type="button" onclick="setCashReceived('exact')" class="px-2 py-0.5 rounded bg-white border border-slate-200 text-[11px] font-mono font-bold hover:bg-slate-100">Uang Pas</button>
+              <button type="button" onclick="setCashReceived(50000)" class="px-2 py-0.5 rounded bg-white border border-slate-200 text-[11px] font-mono font-bold hover:bg-slate-100">50k</button>
+              <button type="button" onclick="setCashReceived(100000)" class="px-2 py-0.5 rounded bg-white border border-slate-200 text-[11px] font-mono font-bold hover:bg-slate-100">100k</button>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3 items-center">
+            <input id="checkoutCashInput" oninput="calculateCheckoutChange()" type="number" placeholder="Nominal uang..." class="px-3 py-2 rounded-xl bg-white border border-slate-200 font-mono text-sm font-bold focus:outline-none focus:border-captain-navy" />
+            <div class="text-right">
+              <div class="text-[10px] uppercase font-bold text-slate-400">Kembalian</div>
+              <div id="checkoutChangeDisplay" class="font-mono font-extrabold text-base text-emerald-600">Rp 0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tombol Aksi Pelunasan -->
+        <div class="grid grid-cols-2 gap-2.5 pt-1">
+          <button onclick="finalizeOpenTabCheckout('Tunai')" class="py-3 px-4 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-heading font-extrabold text-sm uppercase tracking-wider shadow-sm transition flex items-center justify-center gap-1.5">
+            <span>💵</span> Lunasi Tunai
+          </button>
+          <button onclick="finalizeOpenTabCheckout('QRIS')" class="py-3 px-4 rounded-2xl bg-captain-cyan hover:bg-cyan-300 text-captain-navy font-heading font-extrabold text-sm uppercase tracking-wider shadow-sm transition flex items-center justify-center gap-1.5">
+            <span>📱</span> Lunasi QRIS
+          </button>
+        </div>
+        <button onclick="finalizeOpenTabCheckout('Kasbon')" class="w-full py-2.5 px-4 rounded-xl bg-pink-50 hover:bg-pink-100 text-captain-pink border border-pink-200 font-heading font-bold text-xs uppercase tracking-wider transition">
+          📓 Alihkan Tagihan Meja Ini ke Buku Piutang / Kasbon (+3 Hari)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       5. MODAL: BUKU PIUTANG & ARSIP KASBON (SESUAI STRUKTUR SPREADSHEET)
+  ====================================================================== -->
+  <div id="modalPiutang" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-6xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
+
+      <!-- Header Buku Piutang -->
+      <div class="px-5 py-4 bg-captain-navy text-white flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <span class="w-10 h-10 rounded-2xl bg-pink-500/20 border border-pink-400/40 text-captain-pink flex items-center justify-center text-xl">📓</span>
+          <div>
+            <h3 class="font-heading font-extrabold text-lg sm:text-xl uppercase tracking-wider">
+              Manajemen Buku_Piutang & Arsip_Piutang (Kasbon Loyal)
+            </h3>
+            <p class="text-xs text-slate-300">
+              Saat status diubah menjadi <span class="font-mono text-emerald-400">LUNAS</span>, baris otomatis diberi tanggal lunas dan dipindahkan ke <span class="font-mono text-captain-cyan">Arsip_Piutang</span>.
+            </p>
+          </div>
+        </div>
+        <button onclick="closeModal('modalPiutang')" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center font-mono text-lg">✕</button>
+      </div>
+
+      <!-- Sub-Navigasi Tab: Buku_Piutang vs Arsip_Piutang -->
+      <div class="px-5 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+        <div class="inline-flex p-1 rounded-xl bg-slate-200/80">
+          <button id="tabBtnPiutangAktif" onclick="switchPiutangTab('aktif')" class="px-4 py-1.5 rounded-lg font-heading font-extrabold text-xs uppercase tracking-wider bg-white text-captain-navy shadow-2xs transition">
+            🔴 Tab 1: Buku_Piutang (Belum Lunas)
+          </button>
+          <button id="tabBtnPiutangArsip" onclick="switchPiutangTab('arsip')" class="px-4 py-1.5 rounded-lg font-heading font-extrabold text-xs uppercase tracking-wider text-slate-600 hover:text-captain-navy transition">
+            🟢 Tab 2: Arsip_Piutang (Riwayat Lunas)
+          </button>
+        </div>
+
+        <div class="flex items-center gap-4 font-mono text-xs">
+          <div>Total Piutang Aktif: <strong id="piutangActiveSum" class="text-captain-pink font-extrabold text-sm">Rp 0</strong></div>
+          <div>Total Terarsip Lunas: <strong id="piutangArchivedSum" class="text-emerald-600 font-extrabold text-sm">Rp 0</strong></div>
+        </div>
+      </div>
+
+      <!-- Tabel Isi Buku_Piutang / Arsip_Piutang -->
+      <div class="p-5 overflow-y-auto flex-1">
+        <!-- Container Tab 1: Buku_Piutang -->
+        <div id="viewPiutangAktif" class="overflow-x-auto border border-slate-200 rounded-2xl">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-100 text-[11px] font-mono font-bold uppercase text-slate-600 border-b border-slate-200">
+                <th class="py-3 px-3.5">order_id</th>
+                <th class="py-3 px-3.5">tanggal</th>
+                <th class="py-3 px-3.5">nama_pelanggan</th>
+                <th class="py-3 px-3.5">rincian_pesanan</th>
+                <th class="py-3 px-3.5">total_tagihan</th>
+                <th class="py-3 px-3.5">jatuh_tempo</th>
+                <th class="py-3 px-3.5">status_bayar</th>
+                <th class="py-3 px-3.5">metode_pelunasan</th>
+                <th class="py-3 px-3.5 text-right">Aksi Pelunasan & WA</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyPiutangAktif" class="divide-y divide-slate-200 text-xs"></tbody>
+          </table>
+        </div>
+
+        <!-- Container Tab 2: Arsip_Piutang -->
+        <div id="viewPiutangArsip" class="hidden overflow-x-auto border border-slate-200 rounded-2xl">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-emerald-50/70 text-[11px] font-mono font-bold uppercase text-emerald-900 border-b border-emerald-200">
+                <th class="py-3 px-3.5">order_id</th>
+                <th class="py-3 px-3.5">tanggal</th>
+                <th class="py-3 px-3.5">nama_pelanggan</th>
+                <th class="py-3 px-3.5">rincian_pesanan</th>
+                <th class="py-3 px-3.5">total_tagihan</th>
+                <th class="py-3 px-3.5">jatuh_tempo</th>
+                <th class="py-3 px-3.5">status_bayar</th>
+                <th class="py-3 px-3.5">tgl_lunas</th>
+                <th class="py-3 px-3.5">metode_pelunasan</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyPiutangArsip" class="divide-y divide-slate-200 text-xs"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       6. MODAL: PENGATURAN INTEGRASI GOOGLE SHEETS & RESET DEMO
+  ====================================================================== -->
+  <div id="modalSettings" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden">
+      <div class="px-5 py-4 bg-captain-navy text-white flex items-center justify-between">
+        <h3 class="font-heading font-extrabold text-lg uppercase tracking-wider">
+          ⚙️ Integrasi Google Sheets & Pengaturan Sistem
+        </h3>
+        <button onclick="closeModal('modalSettings')" class="w-8 h-8 rounded-xl bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center font-mono">✕</button>
+      </div>
+
+      <div class="p-5 space-y-4 text-xs sm:text-sm">
+        <div>
+          <label class="block font-heading font-extrabold uppercase text-xs text-slate-600 mb-1">
+            URL Web App Google Apps Script (`exec`)
+          </label>
+          <input id="inputGasUrl" type="url" placeholder="https://script.google.com/macros/s/AKfycbzLa2QzC2FMgCYWOeroreDWTaXFY8UR9dTikqaohMEFKD8KZMfjiFhNy_ywnxZaV_A6/exec" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 font-mono text-xs focus:outline-none focus:border-captain-navy" />
+          <p class="text-[11px] text-slate-500 mt-1">
+            Kosongkan jika ingin menjalankan dalam <strong>Mode Simulasi Lokal</strong>. Jika diisi, setiap aksi terima pesanan, POS manual, Open Tab, dan pelunasan kasbon akan dikirim via <code>POST</code> ke Spreadsheet Anda.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-heading font-extrabold uppercase text-xs text-slate-600 mb-1">
+              Interval Auto-Polling (Detik)
+            </label>
+            <input id="inputPollInterval" type="number" min="3" max="60" value="5" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 font-mono text-xs" />
+          </div>
+          <div class="flex items-end">
+            <button onclick="saveSettings()" class="w-full py-2.5 px-4 rounded-xl bg-captain-navy hover:bg-slate-800 text-captain-cyan font-heading font-extrabold text-xs uppercase tracking-wider transition">
+              💾 Simpan Konfigurasi
+            </button>
+          </div>
+        </div>
+
+        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-heading font-extrabold text-xs uppercase text-captain-navy">Pemeliharaan Memori Browser & Sinkronisasi</span>
+            <button onclick="resetDemoData()" class="px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-heading font-bold text-xs uppercase transition">
+              🔄 Bersihkan Cache & Tarik Ulang Sheets
+            </button>
+          </div>
+          <p class="text-[11px] text-slate-500">
+            Menghapus cache lokal browser (<code>localStorage</code>) dan menarik ulang data terbaru langsung dari Google Sheets.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
+
+  <!-- =====================================================================
+       7. APPLICATION LOGIC & STATE ENGINE
+  ====================================================================== -->
+  <script>
+    /*************************************************************************
+     * A. KONFIGURASI API GOOGLE APPS SCRIPT
+     *************************************************************************/
+    const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzLa2QzC2FMgCYWOeroreDWTaXFY8UR9dTikqaohMEFKD8KZMfjiFhNy_ywnxZaV_A6/exec";
+    let SCRIPT_URL = localStorage.getItem('CAPTAIN_GAS_URL') || DEFAULT_SCRIPT_URL;
+    let POLL_INTERVAL_SEC = Number(localStorage.getItem('CAPTAIN_POLL_SEC')) || 5;
+    let pollTimerId = null;
+
+    /*************************************************************************
+     * B. KATALOG MENU CAPTAIN COFFEE x CHILL (FALLBACK AWAL SEBELUM SYNC)
+     *************************************************************************/
+    let MENU_CATALOG = [
+      { id: 'bc1', name: 'Specialty Pour Over', price: 18000, category: 'bc', mainTab: 'minuman', defaultMod: 'Regular' },
+      { id: 'bc2', name: 'Es Kopi Susu Sejawat', price: 18000, category: 'bc', mainTab: 'minuman', defaultMod: 'Regular' }
+    ];
+
+    const TABLE_LOCATIONS = [
+      'Meja 01', 'Meja 02', 'Meja 03', 'Meja 04', 'Meja 05', 'Meja 06',
+      'Meja 07', 'Meja 08', 'Meja 09', 'Meja 10', 'Meja 11', 'Area Bar', 'Takeaway'
+    ];
+
+    const QUICK_MODIFIERS = ['Ice', 'Hot', 'Less Sweet', 'Normal Sugar', 'Split Shot', 'Pedas Pisah'];
+
+    /*************************************************************************
+     * C. STATE MANAGEMENT
+     *************************************************************************/
+    const STORAGE_KEY = 'CAPTAIN_COFFEE_OPS_STATE_V1';
+    let appState = loadState();
+
+    let currentRole = 'kasir';
+    let kdsFilter = 'ALL';
+    let kdsViewOnly = false;
+    let audioEnabled = true;
+
+    let posState = {
+      selectedCategory: 'Semua',
+      selectedLocation: 'Meja 01',
+      customerName: '',
+      paymentMethod: 'Tunai',
+      cart: [],
+      isRepeatOrder: false,
+      nextRoundNumber: 1
+    };
+
+    let activeCheckoutLocation = null;
+
+    function getInitialState() {
+      return {
+        orders: [],
+        piutangAktif: [],
+        piutangArsip: []
+      };
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          return {
+            orders: Array.isArray(parsed.orders) ? parsed.orders : [],
+            piutangAktif: Array.isArray(parsed.piutangAktif) ? parsed.piutangAktif : [],
+            piutangArsip: Array.isArray(parsed.piutangArsip) ? parsed.piutangArsip : []
+          };
+        }
+      } catch (e) {
+        console.warn('Gagal membaca state lokal:', e);
+      }
+      return getInitialState();
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      } catch (e) {
+        console.warn('Gagal menyimpan state:', e);
+      }
+    }
+
+    function resetDemoData() {
+      localStorage.removeItem(STORAGE_KEY);
+      appState = getInitialState();
+      saveState();
+      renderAll();
+      closeModal('modalSettings');
+      fetchOrdersFromSheets(true);
+    }
+
+    /*************************************************************************
+     * D. SINKRONISASI DENGAN GOOGLE SHEETS API (GET & POST)
+     *************************************************************************/
+    function syncWithGoogleSheets(showNotification = false) {
+      fetchOrdersFromSheets(showNotification);
+    }
+
+    async function fetchOrdersFromSheets(showNotification = false) {
+      if (!SCRIPT_URL || SCRIPT_URL.includes("TEMPEL_URL")) return;
+      try {
+        const response = await fetch(SCRIPT_URL);
+        const result = await response.json();
+
+        if (result.status === "success") {
+          // 1. Sinkronkan Daftar Menu terlebih dahulu agar harga satuan dapat dicocokkan
+          if (Array.isArray(result.menu) && result.menu.length > 0) {
+            MENU_CATALOG = result.menu.filter(m => m.is_available !== false);
+            const modalPosEl = document.getElementById('modalPos');
+            if (modalPosEl && !modalPosEl.classList.contains('hidden')) {
+              renderPosModalContent();
+            }
+          }
+
+          // 2. Sinkronkan Tab Pesanan_Masuk
+          if (Array.isArray(result.orders)) {
+            appState.orders = result.orders.map(o => {
+              const rawNote = (o.catatan && o.catatan !== '-') ? String(o.catatan) : '';
+              const isOpenTabTagged = rawNote.includes('[OPEN TAB]');
+              const cleanNote = rawNote.replace('[OPEN TAB]', '').trim();
+
+              let items = Array.isArray(o.items) && o.items.length ? o.items.map(it => ({
+                id: it.id || '', name: String(it.name || 'Menu Pesanan'), qty: Math.max(1, Number(it.qty) || 1),
+                price: Number(it.price) || 0, note: [it.options, it.note].filter(Boolean).join(' • ') || cleanNote,
+                done: !!it.done || o.status === 'SIAP SAJI' || o.status === 'SELESAI'
+              })) : [];
+              if (!items.length && typeof o.rincian === 'string' && o.rincian.trim() !== '') {
+                const parts = o.rincian.split(',');
+                items = parts.map(p => {
+                  const trimmed = p.trim();
+                  const match = trimmed.match(/^(\d+)x\s+(.+)$/i);
+                  const qty = match ? parseInt(match[1], 10) : 1;
+                  const fullName = match ? match[2].trim() : (trimmed || 'Menu Pesanan');
+                  
+                  // Cocokkan harga dari MENU_CATALOG jika ada
+                  const baseName = fullName.replace(/\s*\(.*\)$/, '').trim().toLowerCase();
+                  const foundMenu = MENU_CATALOG.find(m => String(m.name).toLowerCase() === baseName);
+                  const unitPrice = foundMenu ? Number(foundMenu.price) : 0;
+
+                  return {
+                    name: fullName,
+                    qty: qty,
+                    price: unitPrice,
+                    note: cleanNote,
+                    done: o.status === 'SIAP SAJI' || o.status === 'SELESAI'
+                  };
+                });
+              }
+
+              let uiStatus = String(o.status || 'MENUNGGU KONFIRMASI').trim().toUpperCase();
+              if (uiStatus === 'MENUNGGU') uiStatus = 'MENUNGGU KONFIRMASI';
+
+              // Normalisasi tampilan metode bayar di UI Kasir
+              let rawPay = String(o.metodeBayar || 'TUNAI').trim();
+              let uiMethod = 'Tunai';
+              if (rawPay.toUpperCase() === 'QRIS') uiMethod = 'QRIS';
+              else if (rawPay.toUpperCase() === 'KASBON') uiMethod = 'Kasbon';
+              else if (isOpenTabTagged || rawPay.toUpperCase() === 'OPEN TAB') uiMethod = 'Open Tab';
+
+              let payStatus = 'LUNAS';
+              if (uiMethod === 'Open Tab') payStatus = 'OPEN TAB';
+              if (uiMethod === 'Kasbon') payStatus = 'KASBON';
+              if (uiStatus === 'MENUNGGU KONFIRMASI') payStatus = 'BELUM LUNAS';
+              if (uiStatus === 'BATAL' || uiStatus === 'KADALUARSA') payStatus = 'BATAL';
+
+              return {
+                orderId: String(o.orderId || '').trim(),
+                timestamp: o.timestamp || getCurrentTimestampStr(),
+                createdAtMs: Date.now() - 60000,
+                location: o.meja || 'Meja 01',
+                customerName: o.nama || 'Pelanggan',
+                items: items.length > 0 ? items : [{
+                  name: o.rincian || 'Menu Pesanan',
+                  qty: 1,
+                  price: Number(o.total) || 0,
+                  note: cleanNote,
+                  done: false
+                }],
+                totalPrice: Number(o.total) || 0,
+                paymentMethod: uiMethod,
+                selectedAuth: uiMethod,
+                paymentStatus: payStatus,
+                status: uiStatus,
+                round: 1,
+                source: 'SHEETS'
+              };
+            });
+          }
+
+          // 3. Sinkronkan Tab Buku_Piutang (Kasbon Aktif)
+          if (Array.isArray(result.kasbon)) {
+            appState.piutangAktif = result.kasbon.map(k => ({
+              order_id: String(k.orderId || '').trim(),
+              tanggal: k.tanggal || '-',
+              nama_pelanggan: k.nama || '-',
+              rincian_pesanan: k.rincian || '-',
+              total_tagihan: Number(k.total) || 0,
+              jatuh_tempo: k.jatuhTempo || '-',
+              status_bayar: k.statusBayar || 'BELUM LUNAS',
+              tgl_lunas: k.tglLunas || '-',
+              metode_pelunasan: k.metodePelunasan && k.metodePelunasan !== '-' ? k.metodePelunasan : 'QRIS'
+            }));
+          }
+
+          // 4. Sinkronkan Tab Arsip_Piutang (Riwayat Lunas)
+          if (Array.isArray(result.arsip)) {
+            appState.piutangArsip = result.arsip.map(a => ({
+              order_id: String(a.orderId || '').trim(),
+              tanggal: a.tanggal || '-',
+              nama_pelanggan: a.nama || '-',
+              rincian_pesanan: a.rincian || '-',
+              total_tagihan: Number(a.total) || 0,
+              jatuh_tempo: a.jatuhTempo || '-',
+              status_bayar: a.statusBayar || 'LUNAS',
+              tgl_lunas: a.tglLunas || '-',
+              metode_pelunasan: a.metodePelunasan || '-'
+            }));
+          }
+
+          saveState();
+          updateSyncBadgeUI(true);
+          renderAll();
+
+          if (showNotification) {
+            showToast('🔄 Data berhasil disinkronkan dengan Google Sheets!', 'cyan');
+          }
+        }
+      } catch (error) {
+        console.warn("Gagal terhubung ke Google Sheets:", error);
+        updateSyncBadgeUI(false);
+        if (showNotification) {
+          showToast('⚠️ Gagal menarik data dari Google Sheets.', 'pink');
+        }
+      }
+    }
+
+    async function sendActionToSheets(payload) {
+      if (!SCRIPT_URL || SCRIPT_URL.includes("TEMPEL_URL")) return;
+      try {
+        const requestPayload = { ...payload };
+        // Minta PIN pada setiap aksi agar PIN salah tidak tersimpan di browser.
+        if (['CREATE_ORDER', 'UPDATE_STATUS', 'SETTLE_KASBON'].includes(String(payload.action || '').toUpperCase())) {
+          const staffPin = prompt('Masukkan PIN staf untuk mengirim perubahan ke server:');
+          if (!staffPin || !staffPin.trim()) {
+            showToast('Aksi dibatalkan: PIN staf diperlukan.', 'pink');
+            setTimeout(() => fetchOrdersFromSheets(false), 300);
+            return;
+          }
+          requestPayload.staff_pin = staffPin.trim();
+        }
+        requestPayload.requestId = payload.requestId || (crypto.randomUUID ? crypto.randomUUID() : `req-${Date.now()}-${Math.random().toString(16).slice(2)}`);
+        // Apps Script ContentService tidak memberi respons CORS yang dapat dibaca browser.
+        // text/plain menghindari preflight; GET berikutnya menjadi sumber kebenaran sinkronisasi.
+        await fetch(SCRIPT_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(requestPayload)
+        });
+        setTimeout(() => fetchOrdersFromSheets(false), 1800);
+      } catch (error) {
+        console.error("Gagal mengirim aksi:", error);
+      }
+    }
+
+    function updateSyncBadgeUI(isConnected = true) {
+      const syncBadge = document.getElementById("syncBadge");
+      const txt = document.getElementById("syncStatusText");
+      if (!syncBadge || !txt) return;
+
+      if (isConnected) {
+        syncBadge.className = "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200";
+        txt.textContent = "LIVE SYNC";
+      } else {
+        syncBadge.className = "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-amber-50 text-amber-700 border border-amber-200";
+        txt.textContent = "OFFLINE";
+      }
+    }
+
+    /*************************************************************************
+     * E. WEB AUDIO NOTIFICATIONS
+     *************************************************************************/
+    function playNotificationSound(type = 'newOrder') {
+      if (!audioEnabled) return;
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioCtx();
+        const now = ctx.currentTime;
+
+        if (type === 'newOrder') {
+          const osc1 = ctx.createOscillator();
+          const gain1 = ctx.createGain();
+          osc1.type = 'sine';
+          osc1.frequency.setValueAtTime(880, now);
+          osc1.frequency.setValueAtTime(1174.66, now + 0.14);
+          gain1.gain.setValueAtTime(0.18, now);
+          gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+          osc1.connect(gain1);
+          gain1.connect(ctx.destination);
+          osc1.start(now);
+          osc1.stop(now + 0.55);
+        } else if (type === 'ready') {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(587.33, now);
+          osc.frequency.setValueAtTime(880, now + 0.12);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.4);
+        }
+      } catch (e) {}
+    }
+
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      document.getElementById('audioIcon').textContent = audioEnabled ? '🔔' : '🔕';
+      showToast(audioEnabled ? 'Notifikasi suara diaktifkan' : 'Notifikasi suara dibisukan', 'navy');
+      if (audioEnabled) playNotificationSound('ready');
+    }
+
+    /*************************************************************************
+     * F. UTILITAS FORMATTER & TOAST
+     *************************************************************************/
+    function formatRupiah(num) {
+      return 'Rp ' + (Number(num) || 0).toLocaleString('id-ID');
+    }
+
+    function getCurrentTimestampStr() {
+      const d = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    function getDueDatePlus3DaysStr() {
+      const d = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+      const pad = n => String(n).padStart(2, '0');
+      return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+    }
+
+    function getElapsedMinutes(createdAtMs) {
+      if (!createdAtMs) return 1;
+      return Math.max(0, Math.floor((Date.now() - createdAtMs) / 60000));
+    }
+
+    function formatStopwatchMMSS(createdAtMs) {
+      if (!createdAtMs) return '00:00';
+      const totalSec = Math.max(0, Math.floor((Date.now() - createdAtMs) / 1000));
+      const mins = String(Math.floor(totalSec / 60)).padStart(2, '0');
+      const secs = String(totalSec % 60).padStart(2, '0');
+      return `${mins}:${secs}`;
+    }
+
+    function showToast(message, theme = 'navy') {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+      const toast = document.createElement('div');
+      let bgClass = 'bg-captain-navy text-white border-slate-700';
+      if (theme === 'pink') bgClass = 'bg-captain-pink text-white border-pink-400';
+      if (theme === 'cyan') bgClass = 'bg-captain-navy text-captain-cyan border-cyan-400';
+      if (theme === 'emerald') bgClass = 'bg-emerald-600 text-white border-emerald-400';
+
+      toast.className = `pointer-events-auto px-4 py-3 rounded-2xl border shadow-lg text-xs font-bold flex items-center justify-between gap-3 transition-all duration-300 ${bgClass}`;
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(8px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 3400);
+    }
+
+    /*************************************************************************
+     * G. ROLE SWITCHER
+     *************************************************************************/
+    function switchRole(role) {
+      currentRole = role;
+      const viewKasir = document.getElementById('viewKasir');
+      const viewBarista = document.getElementById('viewBarista');
+      const btnKasir = document.getElementById('btnRoleKasir');
+      const btnBarista = document.getElementById('btnRoleBarista');
+      const metricsBar = document.getElementById('cashierHeaderMetrics');
+
+      if (role === 'kasir') {
+        viewKasir.classList.remove('hidden');
+        viewBarista.classList.add('hidden');
+        metricsBar.classList.remove('xl:hidden');
+        btnKasir.className = 'flex items-center gap-1.5 px-3.5 py-2 rounded-xl font-heading font-bold text-sm uppercase tracking-wider transition-all bg-captain-navy text-white shadow-xs';
+        btnBarista.className = 'flex items-center gap-1.5 px-3.5 py-2 rounded-xl font-heading font-bold text-sm uppercase tracking-wider transition-all text-slate-600 hover:text-captain-navy';
+      } else {
+        viewKasir.classList.add('hidden');
+        viewBarista.classList.remove('hidden');
+        metricsBar.classList.add('xl:hidden');
+        btnBarista.className = 'flex items-center gap-1.5 px-3.5 py-2 rounded-xl font-heading font-bold text-sm uppercase tracking-wider transition-all bg-captain-navy text-captain-cyan shadow-xs';
+        btnKasir.className = 'flex items-center gap-1.5 px-3.5 py-2 rounded-xl font-heading font-bold text-sm uppercase tracking-wider transition-all text-slate-600 hover:text-captain-navy';
+      }
+      renderAll();
+    }
+
+    /*************************************************************************
+     * H. LOGIKA KASIR (GATEKEEPER, VOID PIN, & STATUS UPDATE)
+     *************************************************************************/
+    function selectCardAuth(orderId, authMethod) {
+      const order = appState.orders.find(o => o.orderId === orderId);
+      if (!order) return;
+      order.selectedAuth = authMethod;
+      saveState();
+      renderAll();
+    }
+
+    function confirmAndSendToBar(orderId) {
+      const order = appState.orders.find(o => o.orderId === orderId);
+      if (!order) return;
+
+      const auth = order.selectedAuth || order.paymentMethod || 'Tunai';
+      order.paymentMethod = auth;
+      order.status = 'DIPROSES';
+
+      if (auth === 'Open Tab') {
+        order.paymentStatus = 'OPEN TAB';
+        showToast(`Tiket #${order.orderId} masuk ke Open Tab & dikirim ke Barista!`, 'cyan');
+      } else if (auth === 'Kasbon') {
+        order.paymentStatus = 'KASBON';
+        showToast(`Tiket #${order.orderId} dicatat ke Kasbon & dikirim ke Barista!`, 'pink');
+      } else {
+        order.paymentStatus = 'LUNAS';
+        showToast(`Pembayaran ${auth} diterima! Tiket #${order.orderId} dikirim ke Barista.`, 'emerald');
+      }
+
+      playNotificationSound('ready');
+      saveState();
+      renderAll();
+
+      sendActionToSheets({
+        action: 'UPDATE_STATUS',
+        orderId: order.orderId,
+        newStatus: 'DIPROSES',
+        metodeBayar: auth
+      });
+    }
+
+    function cancelOrder(orderId) {
+      const order = appState.orders.find(o => o.orderId === orderId);
+      if (!order) return;
+      order.status = 'BATAL';
+      order.paymentStatus = 'BATAL';
+      saveState();
+      renderAll();
+      showToast(`Pesanan #${orderId} dibatalkan.`, 'pink');
+
+      sendActionToSheets({
+        action: 'UPDATE_STATUS',
+        orderId: orderId,
+        newStatus: 'BATAL'
+      });
+    }
+
+    // FUNGSI VOID TIKET DENGAN PIN SPREADSHEET
+    async function promptVoidOrder(orderId) {
+      const inputPin = prompt(`[OTORISASI SUPERVISOR]\nMasukkan PIN untuk Void/Hapus Tiket #${orderId}:`);
+      if (inputPin === null || inputPin.trim() === "") return;
+
+      const confirmVoid = confirm(`Apakah Anda yakin ingin menghapus tiket #${orderId} secara permanen?`);
+      if (!confirmVoid) return;
+
+      showToast("Memverifikasi PIN ke database...", "navy");
+
+      sendActionToSheets({
+        action: "DELETE_ORDER",
+        orderId: orderId,
+        pin: inputPin.trim()
+      });
+
+      appState.orders = appState.orders.filter(o => o.orderId !== orderId);
+      appState.piutangAktif = appState.piutangAktif.filter(p => p.order_id !== orderId);
+      saveState();
+      renderAll();
+      showToast(`Permintaan VOID #${orderId} dikirim ke sistem.`, "emerald");
+    }
+
+    function updateProductionStatus(orderId, newStatus) {
+      const order = appState.orders.find(o => o.orderId === orderId);
+      if (!order) return;
+      order.status = newStatus;
+      if (newStatus === 'SIAP SAJI') {
+        order.items.forEach(it => it.done = true);
+        playNotificationSound('ready');
+        showToast(`☕ Pesanan #${order.orderId} SIAP SAJI di bar!`, 'cyan');
+      } else if (newStatus === 'SELESAI') {
+        showToast(`✔️ Pesanan #${order.orderId} selesai diantar.`, 'emerald');
+      }
+      saveState();
+      renderAll();
+
+      sendActionToSheets({
+        action: 'UPDATE_STATUS',
+        orderId: orderId,
+        newStatus: newStatus
+      });
+    }
+
+    function toggleItemChecklist(orderId, itemIndex) {
+      if (kdsViewOnly && currentRole === 'barista') return;
+      const order = appState.orders.find(o => o.orderId === orderId);
+      if (!order || !order.items[itemIndex]) return;
+      order.items[itemIndex].done = !order.items[itemIndex].done;
+      saveState();
+      renderAll();
+    }
+
+    /*************************************************************************
+     * I. BUKU_PIUTANG & ARSIP (KASBON LOYAL)
+     *************************************************************************/
+    function updatePiutangMethod(orderId, method) {
+      const item = appState.piutangAktif.find(p => p.order_id === orderId);
+      if (item) {
+        item.metode_pelunasan = method;
+        saveState();
+      }
+    }
+
+    function settlePiutangToArchive(orderId) {
+      const idx = appState.piutangAktif.findIndex(p => p.order_id === orderId);
+      if (idx === -1) return;
+
+      const record = appState.piutangAktif[idx];
+      const settlementMethod = record.metode_pelunasan || 'QRIS';
+      const nowStr = getCurrentTimestampStr();
+
+      record.status_bayar = 'LUNAS';
+      record.tgl_lunas = nowStr;
+      record.metode_pelunasan = settlementMethod;
+
+      appState.piutangArsip.unshift(record);
+      appState.piutangAktif.splice(idx, 1);
+
+      saveState();
+      renderAll();
+      playNotificationSound('ready');
+      showToast(`Kasbon #${orderId} LUNAS & dipindahkan ke Arsip!`, 'emerald');
+
+      sendActionToSheets({
+        action: 'SETTLE_KASBON',
+        orderId: orderId,
+        metodePelunasan: settlementMethod
+      });
+    }
+
+    function sendWhatsAppReminder(orderId) {
+      const item = appState.piutangAktif.find(p => p.order_id === orderId);
+      if (!item) return;
+      const text = `Halo Kak *${item.nama_pelanggan}*, salam hangat dari *CAPTAIN COFFEE x CHILL* ☕✨\n\nSekadar mengingatkan rincian seduhan tanggal *${item.tanggal}*:\n• Nota: *#${item.order_id}*\n• Menu: ${item.rincian_pesanan}\n• Total Tagihan: *${formatRupiah(item.total_tagihan)}*\n• Jatuh Tempo: ${item.jatuh_tempo}\n\nPembayaran dapat dilakukan via QRIS atau Tunai ya Kak. Terima kasih banyak! 🙏`;
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    }
+
+    /*************************************************************************
+     * J. MODAL CHECKOUT PELUNASAN OPEN TAB
+     *************************************************************************/
+    function openCheckoutTabModal(location) {
+      activeCheckoutLocation = location;
+      const tabOrders = appState.orders.filter(
+        o => o.location === location && o.paymentStatus === 'OPEN TAB' && o.status !== 'BATAL'
+      );
+      if (tabOrders.length === 0) return;
+
+      const customerNames = [...new Set(tabOrders.map(o => o.customerName))].join(' / ');
+      const grandTotal = tabOrders.reduce((acc, o) => acc + o.totalPrice, 0);
+
+      document.getElementById('checkoutTableBadge').textContent = location.toUpperCase();
+      document.getElementById('checkoutCustomerName').textContent = customerNames;
+      document.getElementById('checkoutRoundCount').textContent = `${tabOrders.length} Ronde Pesanan`;
+      document.getElementById('checkoutGrandTotal').textContent = formatRupiah(grandTotal);
+
+      const roundsContainer = document.getElementById('checkoutRoundsList');
+      roundsContainer.innerHTML = tabOrders.map((o, idx) => `
+        <div class="p-2.5 rounded-xl bg-white border border-slate-200 text-xs">
+          <div class="flex items-center justify-between font-mono font-bold text-slate-600 mb-1">
+            <span>Ronde ${o.round || (idx + 1)} • #${o.orderId}</span>
+            <span class="text-captain-navy">${formatRupiah(o.totalPrice)}</span>
+          </div>
+          <ul class="space-y-0.5 text-slate-600">
+            ${o.items.map(it => `<li>• ${it.qty}x ${it.name} ${it.note ? `<span class="text-slate-400">(${it.note})</span>` : ''}</li>`).join('')}
+          </ul>
+        </div>
+      `).join('');
+
+      document.getElementById('checkoutCashInput').value = grandTotal;
+      calculateCheckoutChange();
+      openModal('modalCheckoutTab');
+    }
+
+    function setCashReceived(amount) {
+      const tabOrders = appState.orders.filter(
+        o => o.location === activeCheckoutLocation && o.paymentStatus === 'OPEN TAB' && o.status !== 'BATAL'
+      );
+      const grandTotal = tabOrders.reduce((acc, o) => acc + o.totalPrice, 0);
+      const input = document.getElementById('checkoutCashInput');
+      input.value = amount === 'exact' ? grandTotal : amount;
+      calculateCheckoutChange();
+    }
+
+    function calculateCheckoutChange() {
+      const tabOrders = appState.orders.filter(
+        o => o.location === activeCheckoutLocation && o.paymentStatus === 'OPEN TAB' && o.status !== 'BATAL'
+      );
+      const grandTotal = tabOrders.reduce((acc, o) => acc + o.totalPrice, 0);
+      const cashReceived = Number(document.getElementById('checkoutCashInput').value) || 0;
+      const change = cashReceived - grandTotal;
+      const el = document.getElementById('checkoutChangeDisplay');
+      if (change >= 0) {
+        el.textContent = formatRupiah(change);
+        el.className = 'font-mono font-extrabold text-base text-emerald-600';
+      } else {
+        el.textContent = 'Kurang ' + formatRupiah(Math.abs(change));
+        el.className = 'font-mono font-extrabold text-base text-rose-500';
+      }
+    }
+
+    function finalizeOpenTabCheckout(method) {
+      if (!activeCheckoutLocation) return;
+      const tabOrders = appState.orders.filter(
+        o => o.location === activeCheckoutLocation && o.paymentStatus === 'OPEN TAB' && o.status !== 'BATAL'
+      );
+      if (tabOrders.length === 0) return;
+
+      const totalBill = tabOrders.reduce((acc, o) => acc + o.totalPrice, 0);
+
+      tabOrders.forEach(o => {
+        o.paymentStatus = (method === 'Kasbon') ? 'KASBON' : 'LUNAS';
+        o.paymentMethod = method;
+        sendActionToSheets({
+          action: 'UPDATE_STATUS',
+          orderId: o.orderId,
+          newStatus: 'SELESAI',
+          metodeBayar: method
+        });
+      });
+
+      showToast(`Open Tab ${activeCheckoutLocation} (${formatRupiah(totalBill)}) diselesaikan via ${method}!`, 'emerald');
+      playNotificationSound('ready');
+      saveState();
+      closeModal('modalCheckoutTab');
+      renderAll();
+    }
+
+    /*************************************************************************
+     * K. MODAL POS KASIR MANUAL
+     *************************************************************************/
+    function openPosModal(prefillLocation = null, prefillCustomer = null) {
+      posState.selectedCategory = 'Semua';
+      posState.cart = [];
+
+      if (prefillLocation) {
+        posState.selectedLocation = prefillLocation;
+        posState.customerName = prefillCustomer || '';
+        posState.paymentMethod = 'Open Tab';
+      } else {
+        posState.selectedLocation = 'Meja 01';
+        posState.customerName = '';
+        posState.paymentMethod = 'Tunai';
+      }
+
+      document.getElementById('posCustomerName').value = posState.customerName;
+      checkLocationRepeatOrderState();
+      renderPosModalContent();
+      openModal('modalPos');
+    }
+
+    function checkLocationRepeatOrderState() {
+      const existingOpenTab = appState.orders.filter(
+        o => o.location === posState.selectedLocation && o.paymentStatus === 'OPEN TAB' && o.status !== 'BATAL'
+      );
+      const badge = document.getElementById('posRepeatBadge');
+      const title = document.getElementById('posModalTitle');
+
+      if (existingOpenTab.length > 0) {
+        posState.isRepeatOrder = true;
+        posState.nextRoundNumber = existingOpenTab.length + 1;
+        if (!document.getElementById('posCustomerName').value) {
+          posState.customerName = existingOpenTab[0].customerName;
+          document.getElementById('posCustomerName').value = posState.customerName;
+        }
+        posState.paymentMethod = 'Open Tab';
+        badge.textContent = `+ TAMBAHAN (RONDE ${posState.nextRoundNumber})`;
+        badge.classList.remove('hidden');
+        title.textContent = `Tambah Pesanan (${posState.selectedLocation})`;
+      } else {
+        posState.isRepeatOrder = false;
+        posState.nextRoundNumber = 1;
+        badge.classList.add('hidden');
+        title.textContent = 'Input Pesanan Kasir Manual (POS Cepat)';
+      }
+      updatePosPaymentButtonsUI();
+    }
+
+    function selectPosLocation(loc) {
+      posState.selectedLocation = loc;
+      checkLocationRepeatOrderState();
+      renderPosTableSelector();
+    }
+
+    function setPosCustomer(name) {
+      posState.customerName = name;
+      document.getElementById('posCustomerName').value = name;
+      if (name === 'haryo' || name === 'Bro Reza' || name === 'Mas Danang') {
+        selectPosPayment('Kasbon');
+      }
+    }
+
+    function selectPosPayment(method) {
+      posState.paymentMethod = method;
+      updatePosPaymentButtonsUI();
+    }
+
+    function updatePosPaymentButtonsUI() {
+      document.querySelectorAll('.pos-pay-btn').forEach(btn => {
+        const pay = btn.getAttribute('data-pay');
+        if (pay === posState.paymentMethod) {
+          btn.className = 'pos-pay-btn p-2.5 rounded-xl border-2 border-captain-navy bg-captain-navy text-white text-left shadow-xs transition';
+        } else {
+          btn.className = 'pos-pay-btn p-2.5 rounded-xl border border-slate-200 bg-white text-captain-navy text-left hover:border-slate-300 transition';
+        }
+      });
+    }
+
+    function addMenuToPosCart(menuId) {
+      const item = MENU_CATALOG.find(m => String(m.id) === String(menuId));
+      if (!item) return;
+      const existing = posState.cart.find(c => String(c.id) === String(menuId));
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        posState.cart.push({
+          id: item.id,
+          name: item.name,
+          price: Number(item.price) || 0,
+          qty: 1,
+          note: item.defaultMod || ''
+        });
+      }
+      renderPosCart();
+    }
+
+    function changePosCartQty(index, delta) {
+      if (!posState.cart[index]) return;
+      posState.cart[index].qty += delta;
+      if (posState.cart[index].qty <= 0) {
+        posState.cart.splice(index, 1);
+      }
+      renderPosCart();
+    }
+
+    function updatePosCartNote(index, noteVal) {
+      if (!posState.cart[index]) return;
+      posState.cart[index].note = noteVal;
+    }
+
+    function appendQuickMod(index, modText) {
+      if (!posState.cart[index]) return;
+      const curr = posState.cart[index].note || '';
+      if (!curr.toLowerCase().includes(modText.toLowerCase())) {
+        posState.cart[index].note = curr ? `${curr} • ${modText}` : modText;
+        renderPosCart();
+      }
+    }
+
+    function clearPosCart() {
+      posState.cart = [];
+      renderPosCart();
+    }
+
+    function renderPosModalContent() {
+      const grid = document.getElementById('posMenuGrid');
+      const catList = document.getElementById('posCategoryList');
+
+      if (!Array.isArray(MENU_CATALOG) || MENU_CATALOG.length === 0) {
+        if (grid) {
+          grid.innerHTML = `<div class="col-span-full py-8 text-center text-xs font-mono text-slate-400">Memuat katalog menu dari database...</div>`;
+        }
+        return;
+      }
+
+      const categories = ['Semua', ...new Set(MENU_CATALOG.map(m => m.category).filter(Boolean))];
+      if (!categories.includes(posState.selectedCategory)) {
+        posState.selectedCategory = 'Semua';
+      }
+
+      if (catList) {
+        catList.innerHTML = categories.map(cat => {
+          const safeCat = String(cat).replace(/'/g, "\\'");
+          return `
+            <button type="button" onclick="posState.selectedCategory='${safeCat}'; renderPosModalContent()" class="px-3.5 py-1.5 rounded-xl font-heading font-bold text-xs uppercase tracking-wider whitespace-nowrap transition ${posState.selectedCategory === cat ? 'bg-captain-navy text-captain-cyan shadow-2xs' : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300'}">
+              ${cat}
+            </button>
+          `;
+        }).join('');
+      }
+
+      const filteredMenu = posState.selectedCategory === 'Semua'
+        ? MENU_CATALOG
+        : MENU_CATALOG.filter(m => m.category === posState.selectedCategory);
+
+      if (grid) {
+        grid.innerHTML = filteredMenu.map(item => {
+          const safeId = String(item.id).replace(/'/g, "\\'");
+          return `
+            <button type="button" onclick="addMenuToPosCart('${safeId}')" class="stitch-card p-3 text-left flex flex-col justify-between hover:border-captain-cyan active:scale-95 transition group">
+              <div>
+                <div class="flex items-center justify-between gap-1">
+                  <span class="text-[10px] font-mono uppercase text-slate-400">${item.category || '-'}</span>
+                  ${item.badge ? `<span class="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-pink-50 text-captain-pink border border-pink-200">${item.badge}</span>` : ''}
+                </div>
+                <h4 class="font-heading font-extrabold text-sm text-captain-navy group-hover:text-cyan-700 leading-snug mt-0.5">${item.name}</h4>
+              </div>
+              <div class="flex items-center justify-between mt-3 pt-2 border-t border-slate-100">
+                <span class="font-mono font-extrabold text-xs text-captain-pink">${formatRupiah(item.price)}</span>
+                <span class="w-6 h-6 rounded-lg bg-slate-100 group-hover:bg-captain-cyan text-captain-navy font-mono font-bold text-xs flex items-center justify-center">+</span>
+              </div>
+            </button>
+          `;
+        }).join('');
+      }
+
+      renderPosTableSelector();
+      renderPosCart();
+      updatePosPaymentButtonsUI();
+    }
+
+    function renderPosTableSelector() {
+      const openTabLocations = new Set(
+        appState.orders.filter(o => o.paymentStatus === 'OPEN TAB' && o.status !== 'BATAL').map(o => o.location)
+      );
+
+      document.getElementById('posTableSelector').innerHTML = TABLE_LOCATIONS.map(loc => {
+        const isSelected = posState.selectedLocation === loc;
+        const hasOpenTab = openTabLocations.has(loc);
+        const shortLabel = loc.replace('Meja ', 'M-');
+        return `
+          <button type="button" onclick="selectPosLocation('${loc}')" class="relative py-2 px-1.5 rounded-xl font-mono font-bold text-xs border transition ${isSelected ? 'bg-captain-navy text-captain-cyan border-captain-navy shadow-2xs' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'}">
+            ${shortLabel}
+            ${hasOpenTab ? '<span class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-500 ring-2 ring-white"></span>' : ''}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function renderPosCart() {
+      const container = document.getElementById('posCartItems');
+      const totalEl = document.getElementById('posTotalDisplay');
+
+      if (posState.cart.length === 0) {
+        container.innerHTML = `<div class="py-8 text-center text-xs text-slate-400">Belum ada menu dipilih.</div>`;
+        totalEl.textContent = 'Rp 0';
+        return;
+      }
+
+      let total = 0;
+      container.innerHTML = posState.cart.map((item, idx) => {
+        total += item.price * item.qty;
+        return `
+          <div class="p-2.5 rounded-xl bg-white border border-slate-200 space-y-1.5">
+            <div class="flex items-center justify-between gap-2">
+              <div class="font-heading font-extrabold text-xs text-captain-navy">${item.name}</div>
+              <div class="flex items-center gap-1.5">
+                <button type="button" onclick="changePosCartQty(${idx}, -1)" class="w-6 h-6 rounded-lg bg-slate-100 font-mono font-bold text-xs">-</button>
+                <span class="font-mono font-extrabold text-xs w-5 text-center">${item.qty}</span>
+                <button type="button" onclick="changePosCartQty(${idx}, 1)" class="w-6 h-6 rounded-lg bg-slate-100 font-mono font-bold text-xs">+</button>
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-1">
+              ${QUICK_MODIFIERS.map(mod => `
+                <button type="button" onclick="appendQuickMod(${idx}, '${mod}')" class="px-1.5 py-0.5 rounded bg-slate-100 text-[10px] font-mono text-slate-600">${mod}</button>
+              `).join('')}
+            </div>
+            <input type="text" value="${item.note || ''}" oninput="updatePosCartNote(${idx}, this.value)" placeholder="Catatan racikan..." class="w-full px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-[11px]" />
+          </div>
+        `;
+      }).join('');
+
+      totalEl.textContent = formatRupiah(total);
+    }
+
+    function submitPosOrder() {
+      if (posState.cart.length === 0) {
+        showToast('Pilih minimal 1 menu terlebih dahulu!', 'pink');
+        return;
+      }
+
+      const customerNameInput = document.getElementById('posCustomerName').value.trim();
+      const customerName = customerNameInput || (posState.selectedLocation === 'Takeaway' ? 'Pelanggan Takeaway' : `Tamu ${posState.selectedLocation}`);
+      const totalPrice = posState.cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+
+      const tableCode = posState.selectedLocation.startsWith('Meja ')
+        ? posState.selectedLocation.replace('Meja ', '')
+        : '00';
+      const randomNum = Math.floor(1000 + Math.random() * 9000);
+      const orderId = `CAP-${tableCode}-${randomNum}`;
+
+      const summaryStr = posState.cart.map(i => `${i.qty}x ${i.name}`).join(', ');
+      const notesStr = posState.cart.map(i => i.note).filter(Boolean).join(' • ') || '-';
+
+      let paymentStatus = 'LUNAS';
+      if (posState.paymentMethod === 'Open Tab') paymentStatus = 'OPEN TAB';
+      if (posState.paymentMethod === 'Kasbon') paymentStatus = 'KASBON';
+
+      const newOrder = {
+        orderId,
+        timestamp: getCurrentTimestampStr(),
+        createdAtMs: Date.now(),
+        location: posState.selectedLocation,
+        customerName,
+        items: posState.cart.map(c => ({
+          name: c.name,
+          qty: c.qty,
+          price: c.price,
+          note: c.note,
+          done: false
+        })),
+        totalPrice,
+        paymentMethod: posState.paymentMethod,
+        selectedAuth: posState.paymentMethod,
+        paymentStatus,
+        status: 'DIPROSES',
+        round: posState.isRepeatOrder ? posState.nextRoundNumber : 1,
+        source: 'POS'
+      };
+
+      appState.orders.unshift(newOrder);
+      saveState();
+      closeModal('modalPos');
+      renderAll();
+      playNotificationSound('newOrder');
+      showToast(`Tiket POS #${newOrder.orderId} berhasil dikirim ke Barista!`, 'cyan');
+
+      sendActionToSheets({
+        action: 'CREATE_ORDER',
+        orderId: newOrder.orderId,
+        meja: newOrder.location,
+        nama: newOrder.customerName,
+        rincian: summaryStr,
+        catatan: notesStr,
+        total: newOrder.totalPrice,
+        metodeBayar: newOrder.paymentMethod,
+        status: 'DIPROSES',
+        items_json: JSON.stringify(newOrder.items)
+      });
+    }
+
+    /*************************************************************************
+     * L. SIMULASI PESANAN WEB MASUK (AMAN DARI ARRAY INDEX OUT OF BOUNDS)
+     *************************************************************************/
+    function simulateIncomingWebOrder() {
+      if (!Array.isArray(MENU_CATALOG) || MENU_CATALOG.length === 0) {
+        showToast('Katalog menu masih kosong!', 'pink');
+        return;
+      }
+
+      const sampleNames = ['Kak Sinta', 'Andi Pratama', 'Budi Santoso', 'Citra Kirana', 'Dewa'];
+      const sampleTables = ['Meja 02', 'Meja 05', 'Meja 06', 'Meja 08', 'Meja 10'];
+      const randomName = sampleNames[Math.floor(Math.random() * sampleNames.length)];
+      const randomTable = sampleTables[Math.floor(Math.random() * sampleTables.length)];
+      const tableCode = randomTable.replace('Meja ', '');
+      const orderId = `CAP-${tableCode}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+      const m1 = MENU_CATALOG[Math.floor(Math.random() * MENU_CATALOG.length)];
+      const m2 = MENU_CATALOG[Math.floor(Math.random() * MENU_CATALOG.length)];
+
+      const simulatedOrder = {
+        orderId,
+        timestamp: getCurrentTimestampStr(),
+        createdAtMs: Date.now(),
+        location: randomTable,
+        customerName: randomName,
+        items: [
+          { name: m1.name, qty: 1, price: Number(m1.price) || 0, note: m1.defaultMod || 'Regular', done: false },
+          { name: m2.name, qty: 1, price: Number(m2.price) || 0, note: m2.defaultMod || 'Regular', done: false }
+        ],
+        totalPrice: (Number(m1.price) || 0) + (Number(m2.price) || 0),
+        paymentMethod: 'QRIS',
+        selectedAuth: 'QRIS',
+        paymentStatus: 'BELUM LUNAS',
+        status: 'MENUNGGU KONFIRMASI',
+        round: 1,
+        source: 'WEB'
+      };
+
+      appState.orders.unshift(simulatedOrder);
+      saveState();
+      renderAll();
+      playNotificationSound('newOrder');
+      showToast(`🔔 Pesanan Web Baru: #${orderId} (${randomTable} - ${randomName})`, 'pink');
+    }
+
+    /*************************************************************************
+     * M. RENDER ENGINE (KASIR, BARISTA KDS, DAN BUKU PIUTANG)
+     *************************************************************************/
+    function renderAll() {
+      updateHeaderMetrics();
+      renderCashierKanban();
+      renderBaristaKds();
+      renderPiutangTables();
+    }
+
+    function updateHeaderMetrics() {
+      const cashTotal = appState.orders
+        .filter(o => o.paymentStatus === 'LUNAS' && o.paymentMethod === 'Tunai' && o.status !== 'BATAL')
+        .reduce((sum, o) => sum + (Number(o.totalPrice) || 0), 0);
+
+      const qrisTotal = appState.orders
+        .filter(o => o.paymentStatus === 'LUNAS' && o.paymentMethod === 'QRIS' && o.status !== 'BATAL')
+        .reduce((sum, o) => sum + (Number(o.totalPrice) || 0), 0);
+
+      const openTabSum = appState.orders
+        .filter(o => o.paymentStatus === 'OPEN TAB' && o.status !== 'BATAL')
+        .reduce((sum, o) => sum + (Number(o.totalPrice) || 0), 0);
+      const piutangSum = appState.piutangAktif.reduce((sum, p) => sum + Number(p.total_tagihan || 0), 0);
+
+      const occupiedTables = new Set(
+        appState.orders
+          .filter(o => String(o.location).startsWith('Meja ') && (o.paymentStatus === 'OPEN TAB' || o.status === 'DIPROSES' || o.status === 'SIAP SAJI'))
+          .map(o => o.location)
+      );
+
+      document.getElementById('metricCash').textContent = formatRupiah(cashTotal);
+      document.getElementById('metricQris').textContent = formatRupiah(qrisTotal);
+      document.getElementById('metricCashMobile').textContent = formatRupiah(cashTotal);
+      document.getElementById('metricQrisMobile').textContent = formatRupiah(qrisTotal);
+      document.getElementById('metricUnpaid').textContent = formatRupiah(openTabSum + piutangSum);
+      document.getElementById('metricTables').textContent = `${occupiedTables.size} / 11`;
+
+      const pendingCount = appState.orders.filter(o => o.status === 'MENUNGGU KONFIRMASI').length;
+      const activeKdsCount = appState.orders.filter(o => o.status === 'DIPROSES' || o.status === 'SIAP SAJI').length;
+
+      document.getElementById('badgePendingKasir').textContent = pendingCount;
+      document.getElementById('badgeActiveKds').textContent = activeKdsCount;
+      document.getElementById('badgeKasbonCount').textContent = appState.piutangAktif.length;
+    }
+
+    function renderCashierKanban() {
+      const query = (document.getElementById('searchOrderInput')?.value || '').trim().toLowerCase();
+      const matchQuery = (o) => {
+        if (!query) return true;
+        return (
+          String(o.orderId).toLowerCase().includes(query) ||
+          String(o.customerName).toLowerCase().includes(query) ||
+          String(o.location).toLowerCase().includes(query)
+        );
+      };
+
+      // 1. Kolom Menunggu Konfirmasi
+      const pendingOrders = appState.orders.filter(o => o.status === 'MENUNGGU KONFIRMASI' && matchQuery(o));
+      document.getElementById('countColPending').textContent = pendingOrders.length;
+      const colPendingEl = document.getElementById('listColPending');
+
+      if (pendingOrders.length === 0) {
+        colPendingEl.innerHTML = `<div class="stitch-card p-6 text-center text-slate-400 text-xs">Tidak ada antrean pesanan web yang menunggu konfirmasi.</div>`;
+      } else {
+        colPendingEl.innerHTML = pendingOrders.map(o => {
+          const mins = getElapsedMinutes(o.createdAtMs);
+          const isLate = mins >= 10;
+          const auth = o.selectedAuth || o.paymentMethod || 'QRIS';
+          return `
+            <div class="stitch-card p-4 card-new-alert space-y-3">
+              <div class="flex items-start justify-between gap-2">
+                <div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-mono font-extrabold bg-captain-navy text-captain-cyan">${o.location}</span>
+                    <span class="font-mono text-xs font-bold text-slate-500">#${o.orderId}</span>
+                  </div>
+                  <h3 class="font-heading font-extrabold text-base text-captain-navy mt-1">${o.customerName}</h3>
+                </div>
+                <span class="px-2 py-0.5 rounded-lg font-mono text-[11px] font-bold ${isLate ? 'bg-rose-100 text-rose-700 animate-bounce' : 'bg-pink-50 text-captain-pink'}">
+                  ⏱️ ${mins} mnt lalu
+                </span>
+              </div>
+
+              <ul class="space-y-1.5 text-xs border-y border-slate-100 py-2.5">
+                ${o.items.map(it => `
+                  <li class="flex justify-between gap-2">
+                    <div>
+                      <span class="font-mono font-bold text-captain-navy">${it.qty}x</span>
+                      <span class="font-semibold text-slate-800">${it.name}</span>
+                      ${it.note ? `<div class="text-[11px] text-amber-700 font-medium">↳ Catatan: ${it.note}</div>` : ''}
+                    </div>
+                    <span class="font-mono text-slate-600">${it.price ? formatRupiah(it.price * it.qty) : ''}</span>
+                  </li>
+                `).join('')}
+              </ul>
+
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] text-slate-500">Pilih Otorisasi Kasir:</span>
+                <span class="font-mono font-extrabold text-base text-captain-pink">${formatRupiah(o.totalPrice)}</span>
+              </div>
+
+              <div class="grid grid-cols-4 gap-1 text-[11px] font-heading font-bold uppercase">
+                ${['Tunai', 'QRIS', 'Open Tab', 'Kasbon'].map(m => `
+                  <button type="button" onclick="selectCardAuth('${o.orderId}', '${m}')" class="py-1.5 px-1 rounded-lg border text-center transition ${auth === m ? 'bg-captain-navy text-captain-cyan border-captain-navy' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'}">
+                    ${m}
+                  </button>
+                `).join('')}
+              </div>
+
+              <div class="flex items-center gap-2 pt-1">
+                <button onclick="confirmAndSendToBar('${o.orderId}')" class="flex-1 py-2.5 px-3 rounded-xl bg-captain-cyan hover:bg-cyan-300 text-captain-navy font-heading font-extrabold text-xs uppercase tracking-wider shadow-xs transition">
+                  ✔️ Terima (${auth}) & Ke Bar
+                </button>
+                <button onclick="cancelOrder('${o.orderId}')" class="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 font-heading font-bold text-xs uppercase transition">
+                  ✕ Batal
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // 2. Kolom Open Tab
+      const openTabOrders = appState.orders.filter(o => o.paymentStatus === 'OPEN TAB' && o.status !== 'BATAL' && matchQuery(o));
+      const groupedByLocation = {};
+      openTabOrders.forEach(o => {
+        if (!groupedByLocation[o.location]) groupedByLocation[o.location] = [];
+        groupedByLocation[o.location].push(o);
+      });
+
+      const tableKeys = Object.keys(groupedByLocation);
+      document.getElementById('countColOpenTab').textContent = `${tableKeys.length} Meja`;
+      const colOpenTabEl = document.getElementById('listColOpenTab');
+
+      if (tableKeys.length === 0) {
+        colOpenTabEl.innerHTML = `<div class="stitch-card p-6 text-center text-slate-400 text-xs">Belum ada meja berstatus Open Tab aktif.</div>`;
+      } else {
+        colOpenTabEl.innerHTML = tableKeys.map(loc => {
+          const rounds = groupedByLocation[loc].sort((a, b) => (a.round || 1) - (b.round || 1));
+          const totalTableBill = rounds.reduce((sum, r) => sum + (Number(r.totalPrice) || 0), 0);
+          const customerName = rounds[0].customerName;
+          const safeCustomer = String(customerName).replace(/'/g, "\\'");
+
+          return `
+            <div class="stitch-card p-4 border-l-4 border-l-amber-500 space-y-3">
+              <div class="flex items-start justify-between gap-2">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-mono font-extrabold bg-amber-500 text-white">${loc}</span>
+                    <span class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                      ${rounds.length} Ronde
+                    </span>
+                  </div>
+                  <h3 class="font-heading font-extrabold text-base text-captain-navy mt-1">${customerName}</h3>
+                </div>
+              </div>
+
+              <div class="space-y-2 border-y border-slate-100 py-2.5">
+                ${rounds.map((r, idx) => `
+                  <div class="p-2 rounded-xl bg-slate-50 border border-slate-200/70 text-xs">
+                    <div class="flex items-center justify-between mb-1">
+                      <span class="font-mono font-bold text-[11px] text-captain-navy">Ronde ${r.round || (idx + 1)} <span class="text-slate-400">(#${r.orderId})</span></span>
+                      <div class="flex items-center gap-1.5">
+                        <span class="px-1.5 py-0.2 rounded text-[10px] font-mono font-bold border bg-cyan-50 text-cyan-700 border-cyan-200">${r.status}</span>
+                        <button onclick="promptVoidOrder('${r.orderId}')" title="Void Tiket Ronde Ini" class="text-[10px] text-rose-500 hover:underline font-bold">🗑️</button>
+                      </div>
+                    </div>
+                    <ul class="space-y-0.5 text-slate-600 text-[11px]">
+                      ${r.items.map(it => `<li>• ${it.qty}x ${it.name}</li>`).join('')}
+                    </ul>
+                  </div>
+                `).join('')}
+              </div>
+
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-500">Total Tagihan</span>
+                <span class="font-mono font-black text-lg text-captain-pink">${formatRupiah(totalTableBill)}</span>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2 pt-1">
+                <button onclick="openPosModal('${loc}', '${safeCustomer}')" class="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-cyan-50 text-captain-navy border border-slate-200 font-heading font-extrabold text-xs uppercase tracking-wider transition">
+                  + Tambah Menu
+                </button>
+                <button onclick="openCheckoutTabModal('${loc}')" class="py-2.5 px-3 rounded-xl bg-captain-navy hover:bg-slate-800 text-captain-cyan font-heading font-extrabold text-xs uppercase tracking-wider shadow-xs transition">
+                  💳 Selesaikan / Bayar
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // 3. Kolom Antrean Bar & Siap Saji
+      const activeBarOrders = appState.orders
+        .filter(o => (o.status === 'DIPROSES' || o.status === 'SIAP SAJI') && matchQuery(o))
+        .sort((a, b) => (a.status === 'SIAP SAJI' ? -1 : 1));
+
+      document.getElementById('countColProcessing').textContent = activeBarOrders.length;
+      const colProcEl = document.getElementById('listColProcessing');
+
+      if (activeBarOrders.length === 0) {
+        colProcEl.innerHTML = `<div class="stitch-card p-6 text-center text-slate-400 text-xs">Semua racikan telah selesai disajikan.</div>`;
+      } else {
+        colProcEl.innerHTML = activeBarOrders.map(o => {
+          const isReady = o.status === 'SIAP SAJI';
+          const mins = getElapsedMinutes(o.createdAtMs);
+          return `
+            <div class="stitch-card p-4 ${isReady ? 'card-ready-alert bg-cyan-50/20' : ''} space-y-2.5">
+              <div class="flex items-start justify-between gap-2">
+                <div>
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-mono font-extrabold bg-captain-navy text-white">${o.location}</span>
+                    <span class="font-mono text-xs text-slate-400">#${o.orderId}</span>
+                  </div>
+                  <h4 class="font-heading font-extrabold text-sm text-captain-navy mt-1">${o.customerName}</h4>
+                </div>
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-extrabold ${isReady ? 'bg-emerald-500 text-white' : 'bg-cyan-100 text-cyan-900'}">
+                  ${isReady ? '🔔 SIAP SAJI' : `⚙️ DIRACIK (${mins}m)`}
+                </span>
+              </div>
+
+              <ul class="space-y-1 text-xs border-y border-slate-100 py-2">
+                ${o.items.map(it => `
+                  <li class="flex items-center justify-between">
+                    <span class="${it.done ? 'line-through text-slate-400' : 'text-slate-700 font-medium'}">
+                      <strong class="font-mono">${it.qty}x</strong> ${it.name}
+                    </span>
+                    <span>${it.done ? '✅' : '⏳'}</span>
+                  </li>
+                `).join('')}
+              </ul>
+
+              <div class="flex items-center justify-between pt-1 gap-2">
+                <span class="text-[11px] font-mono font-bold ${o.paymentStatus === 'LUNAS' ? 'text-emerald-600' : 'text-amber-600'}">
+                  ${o.paymentStatus} (${o.paymentMethod})
+                </span>
+
+                <div class="flex items-center gap-1.5">
+                  <button onclick="promptVoidOrder('${o.orderId}')" title="Void Tiket (Perlu PIN)" class="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold transition">
+                    🗑️ Void
+                  </button>
+
+                  ${isReady ? `
+                    <button onclick="updateProductionStatus('${o.orderId}', 'SELESAI')" class="py-2 px-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-heading font-extrabold text-xs uppercase tracking-wider shadow-xs transition">
+                      🏃 Selesai Diantar
+                    </button>
+                  ` : `
+                    <button onclick="updateProductionStatus('${o.orderId}', 'SIAP SAJI')" class="py-1.5 px-3 rounded-xl bg-slate-100 hover:bg-cyan-100 text-captain-navy font-heading font-bold text-xs uppercase transition">
+                      Tandai Siap Saji
+                    </button>
+                  `}
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    /*************************************************************************
+     * N. RENDER KDS BARISTA
+     *************************************************************************/
+    function setKdsFilter(filterVal) {
+      kdsFilter = filterVal;
+      document.getElementById('kdsFilterAll').className = filterVal === 'ALL'
+        ? 'px-3 py-1.5 rounded-lg bg-captain-cyan text-captain-navy transition'
+        : 'px-3 py-1.5 rounded-lg text-slate-300 hover:text-white transition';
+      document.getElementById('kdsFilterProcess').className = filterVal === 'DIPROSES'
+        ? 'px-3 py-1.5 rounded-lg bg-captain-cyan text-captain-navy transition'
+        : 'px-3 py-1.5 rounded-lg text-slate-300 hover:text-white transition';
+      document.getElementById('kdsFilterReady').className = filterVal === 'SIAP SAJI'
+        ? 'px-3 py-1.5 rounded-lg bg-captain-cyan text-captain-navy transition'
+        : 'px-3 py-1.5 rounded-lg text-slate-300 hover:text-white transition';
+      renderBaristaKds();
+    }
+
+    function toggleBaristaViewOnly() {
+      kdsViewOnly = !kdsViewOnly;
+      document.getElementById('kdsModeIcon').textContent = kdsViewOnly ? '🔒' : '🔓';
+      document.getElementById('kdsModeText').textContent = kdsViewOnly
+        ? 'Mode Layar: Monitor Pasif (View-Only)'
+        : 'Mode Layar: Interaktif (Sentuh)';
+      renderBaristaKds();
+    }
+
+    function renderBaristaKds() {
+      const container = document.getElementById('kdsGridContainer');
+      if (!container) return;
+      let kdsOrders = appState.orders.filter(o => o.status === 'DIPROSES' || o.status === 'SIAP SAJI');
+
+      if (kdsFilter !== 'ALL') {
+        kdsOrders = kdsOrders.filter(o => o.status === kdsFilter);
+      }
+
+      kdsOrders.sort((a, b) => (a.createdAtMs || 0) - (b.createdAtMs || 0));
+
+      if (kdsOrders.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full stitch-card p-12 text-center space-y-2">
+            <div class="text-4xl">☕✨</div>
+            <h3 class="font-heading font-extrabold text-xl uppercase text-captain-navy">Meja Bar Bersih — Tidak Ada Antrean Racikan</h3>
+            <p class="text-xs text-slate-500">Pesanan baru yang telah divalidasi kasir akan otomatis muncul di layar ini.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = kdsOrders.map(o => {
+        const isReady = o.status === 'SIAP SAJI';
+        const stopwatch = formatStopwatchMMSS(o.createdAtMs);
+
+        return `
+          <div class="stitch-card flex flex-col justify-between overflow-hidden border-2 ${isReady ? 'border-emerald-500' : 'border-slate-200'}">
+            <div>
+              <div class="p-4 ${isReady ? 'bg-emerald-600 text-white' : 'bg-captain-navy text-white'} flex items-center justify-between">
+                <div>
+                  <span class="font-heading font-black text-2xl tracking-wider uppercase text-captain-cyan">${o.location}</span>
+                  <div class="text-xs font-mono text-slate-300 mt-0.5">#${o.orderId} • <strong class="text-white">${o.customerName}</strong></div>
+                </div>
+                <div class="px-2.5 py-1 rounded-xl font-mono font-extrabold text-sm bg-slate-800 text-captain-cyan">
+                  ⏱️ ${stopwatch}
+                </div>
+              </div>
+
+              <div class="p-4 divide-y divide-slate-100">
+                ${o.items.map((it, idx) => `
+                  <div onclick="toggleItemChecklist('${o.orderId}', ${idx})" class="py-3 first:pt-0 last:pb-0 flex items-start justify-between gap-3 ${kdsViewOnly ? '' : 'cursor-pointer hover:bg-slate-50 rounded-xl px-2 -mx-2 transition'}">
+                    <div class="flex items-start gap-3">
+                      <span class="font-mono font-black text-xl px-2.5 py-0.5 rounded-xl ${it.done ? 'bg-slate-100 text-slate-400' : 'bg-cyan-100 text-captain-navy'}">
+                        ${it.qty}x
+                      </span>
+                      <div>
+                        <div class="font-heading font-extrabold text-lg uppercase tracking-wide ${it.done ? 'line-through text-slate-400' : 'text-captain-navy'}">
+                          ${it.name}
+                        </div>
+                        ${it.note ? `<div class="inline-block mt-1 px-2.5 py-0.5 rounded-lg text-xs font-mono font-bold bg-amber-100 text-amber-900 border border-amber-300">⚡ ${it.note}</div>` : ''}
+                      </div>
+                    </div>
+                    <span class="text-xl select-none">${it.done ? '✅' : '⬜'}</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <div class="p-3.5 bg-slate-50 border-t border-slate-200">
+              ${kdsViewOnly ? `
+                <div class="py-2 text-center font-mono font-bold text-xs uppercase text-slate-500">
+                  ${isReady ? '🔔 STATUS: SIAP SAJI DI MEJA BAR' : '⚙️ STATUS: SEDANG DIRACIK BARISTA'}
+                </div>
+              ` : isReady ? `
+                <button onclick="updateProductionStatus('${o.orderId}', 'SELESAI')" class="w-full py-3 px-4 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-heading font-black text-base uppercase tracking-wider shadow-sm transition">
+                  🏃 Selesai Diantar Runner
+                </button>
+              ` : `
+                <button onclick="updateProductionStatus('${o.orderId}', 'SIAP SAJI')" class="w-full py-3.5 px-4 rounded-2xl bg-captain-cyan hover:bg-cyan-300 text-captain-navy font-heading font-black text-base uppercase tracking-wider shadow-sm hover:shadow-cyan-glow transition">
+                  ✔️ TANDAI SIAP SAJI
+                </button>
+              `}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    /*************************************************************************
+     * O. TABEL BUKU_PIUTANG & ARSIP_PIUTANG
+     *************************************************************************/
+    function switchPiutangTab(tab) {
+      const vAktif = document.getElementById('viewPiutangAktif');
+      const vArsip = document.getElementById('viewPiutangArsip');
+      const bAktif = document.getElementById('tabBtnPiutangAktif');
+      const bArsip = document.getElementById('tabBtnPiutangArsip');
+
+      if (tab === 'aktif') {
+        vAktif.classList.remove('hidden');
+        vArsip.classList.add('hidden');
+        bAktif.className = 'px-4 py-1.5 rounded-lg font-heading font-extrabold text-xs uppercase tracking-wider bg-white text-captain-navy shadow-2xs transition';
+        bArsip.className = 'px-4 py-1.5 rounded-lg font-heading font-extrabold text-xs uppercase tracking-wider text-slate-600 hover:text-captain-navy transition';
+      } else {
+        vAktif.classList.add('hidden');
+        vArsip.classList.remove('hidden');
+        bArsip.className = 'px-4 py-1.5 rounded-lg font-heading font-extrabold text-xs uppercase tracking-wider bg-white text-captain-navy shadow-2xs transition';
+        bAktif.className = 'px-4 py-1.5 rounded-lg font-heading font-extrabold text-xs uppercase tracking-wider text-slate-600 hover:text-captain-navy transition';
+      }
+    }
+
+    function renderPiutangTables() {
+      const sumAktif = appState.piutangAktif.reduce((s, p) => s + Number(p.total_tagihan || 0), 0);
+      const sumArsip = appState.piutangArsip.reduce((s, p) => s + Number(p.total_tagihan || 0), 0);
+      document.getElementById('piutangActiveSum').textContent = formatRupiah(sumAktif);
+      document.getElementById('piutangArchivedSum').textContent = formatRupiah(sumArsip);
+
+      const tbodyAktif = document.getElementById('tbodyPiutangAktif');
+      if (appState.piutangAktif.length === 0) {
+        tbodyAktif.innerHTML = `
+          <tr>
+            <td colspan="9" class="py-8 text-center text-slate-400">
+              Meja kerja Buku_Piutang bersih! Tidak ada kasbon aktif yang belum lunas.
+            </td>
+          </tr>
+        `;
+      } else {
+        tbodyAktif.innerHTML = appState.piutangAktif.map(p => `
+          <tr class="hover:bg-slate-50">
+            <td class="py-3 px-3.5 font-mono font-bold text-captain-navy">${p.order_id}</td>
+            <td class="py-3 px-3.5 font-mono text-slate-500">${p.tanggal}</td>
+            <td class="py-3 px-3.5 font-bold text-captain-navy">${p.nama_pelanggan}</td>
+            <td class="py-3 px-3.5 text-slate-600">${p.rincian_pesanan}</td>
+            <td class="py-3 px-3.5 font-mono font-extrabold text-captain-pink">${formatRupiah(p.total_tagihan)}</td>
+            <td class="py-3 px-3.5 font-mono font-bold text-amber-700">${p.jatuh_tempo}</td>
+            <td class="py-3 px-3.5">
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-extrabold bg-rose-600 text-white">
+                ${p.status_bayar}
+              </span>
+            </td>
+            <td class="py-3 px-3.5">
+              <select onchange="updatePiutangMethod('${p.order_id}', this.value)" class="px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 font-mono text-xs font-bold">
+                <option value="QRIS" ${p.metode_pelunasan === 'QRIS' ? 'selected' : ''}>QRIS</option>
+                <option value="Tunai" ${p.metode_pelunasan === 'Tunai' ? 'selected' : ''}>Tunai</option>
+              </select>
+            </td>
+            <td class="py-3 px-3.5 text-right space-x-1.5 whitespace-nowrap">
+              <button onclick="settlePiutangToArchive('${p.order_id}')" class="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-heading font-extrabold text-xs uppercase tracking-wider shadow-2xs transition">
+                ✔️ Lunas & Arsipkan
+              </button>
+              <button onclick="sendWhatsAppReminder('${p.order_id}')" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-heading font-bold text-xs uppercase transition">
+                💬 WA
+              </button>
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      const tbodyArsip = document.getElementById('tbodyPiutangArsip');
+      if (appState.piutangArsip.length === 0) {
+        tbodyArsip.innerHTML = `<tr><td colspan="9" class="py-8 text-center text-slate-400">Belum ada riwayat pelunasan di Arsip_Piutang.</td></tr>`;
+      } else {
+        tbodyArsip.innerHTML = appState.piutangArsip.map(p => `
+          <tr class="hover:bg-slate-50">
+            <td class="py-3 px-3.5 font-mono font-bold text-slate-700">${p.order_id}</td>
+            <td class="py-3 px-3.5 font-mono text-slate-500">${p.tanggal}</td>
+            <td class="py-3 px-3.5 font-bold text-captain-navy">${p.nama_pelanggan}</td>
+            <td class="py-3 px-3.5 text-slate-600">${p.rincian_pesanan}</td>
+            <td class="py-3 px-3.5 font-mono font-bold text-slate-800">${formatRupiah(p.total_tagihan)}</td>
+            <td class="py-3 px-3.5 font-mono text-slate-500">${p.jatuh_tempo}</td>
+            <td class="py-3 px-3.5">
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-extrabold bg-emerald-600 text-white">LUNAS</span>
+            </td>
+            <td class="py-3 px-3.5 font-mono font-bold text-emerald-700">${p.tgl_lunas}</td>
+            <td class="py-3 px-3.5 font-mono font-bold text-captain-navy">${p.metode_pelunasan}</td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    /*************************************************************************
+     * P. MODAL HELPERS & SETTINGS
+     *************************************************************************/
+    function openModal(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.remove('hidden');
+      if (id === 'modalSettings') {
+        document.getElementById('inputGasUrl').value = SCRIPT_URL;
+        document.getElementById('inputPollInterval').value = POLL_INTERVAL_SEC;
+      }
+    }
+
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('hidden');
+    }
+
+    function saveSettings() {
+      const newUrl = document.getElementById('inputGasUrl').value.trim();
+      const newPoll = Math.max(3, Number(document.getElementById('inputPollInterval').value) || 5);
+
+      SCRIPT_URL = newUrl || DEFAULT_SCRIPT_URL;
+      POLL_INTERVAL_SEC = newPoll;
+
+      localStorage.setItem('CAPTAIN_GAS_URL', SCRIPT_URL);
+      localStorage.setItem('CAPTAIN_POLL_SEC', String(POLL_INTERVAL_SEC));
+
+      if (pollTimerId) clearInterval(pollTimerId);
+      pollTimerId = setInterval(() => fetchOrdersFromSheets(false), POLL_INTERVAL_SEC * 1000);
+
+      closeModal('modalSettings');
+      fetchOrdersFromSheets(true);
+    }
+
+    /*************************************************************************
+     * Q. INISIALISASI ENGINE & TIMERS
+     *************************************************************************/
+    function startLiveTickers() {
+      setInterval(() => {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const clockEl = document.getElementById('liveClock');
+        if (clockEl) clockEl.textContent = `${timeStr} WIB`;
+
+        if (currentRole === 'barista') {
+          renderBaristaKds();
+        }
+      }, 1000);
+
+      setInterval(() => {
+        if (currentRole === 'kasir') renderCashierKanban();
+      }, 30000);
+    }
+
+    window.onload = function () {
+      renderAll();
+      startLiveTickers();
+
+      // Sinkronkan langsung dengan Google Sheets & pasang polling otomatis
+      fetchOrdersFromSheets(false);
+      pollTimerId = setInterval(() => fetchOrdersFromSheets(false), POLL_INTERVAL_SEC * 1000);
+    };
+  </script>
+</body>
+</html>
